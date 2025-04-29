@@ -32,10 +32,8 @@ public class CalendarPageFragment extends Fragment {
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
 
-    // Launcher for Google Sign-In intent
-    private final ActivityResultLauncher<Intent> signInLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
+    private final ActivityResultLauncher<Intent> signInLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == requireActivity().RESULT_OK) {
                     Intent data = result.getData();
                     Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
@@ -44,15 +42,14 @@ public class CalendarPageFragment extends Fragment {
                         Log.d(TAG, "Google sign-in successful: " + account.getEmail());
                         firebaseAuthWithGoogle(account.getIdToken());
                     } catch (ApiException e) {
-                        Log.e(TAG, "Google sign in failed: " + e.getStatusCode(), e);
+                        Log.e(TAG, "Google sign-in failed: " + e.getStatusCode(), e);
                         Toast.makeText(getContext(), "Google sign-in failed.", Toast.LENGTH_LONG).show();
                     }
                 } else {
                     Log.w(TAG, "Google sign-in canceled or failed.");
                     Toast.makeText(getContext(), "Sign-in canceled or failed.", Toast.LENGTH_SHORT).show();
                 }
-            }
-    );
+            });
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,7 +57,7 @@ public class CalendarPageFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // From strings.xml
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
@@ -77,33 +74,46 @@ public class CalendarPageFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // If not signed in, start sign-in flow
-        if (mAuth.getCurrentUser() == null) {
-            Log.d(TAG, "No user signed in. Initiating sign-in...");
-            signIn();
-        } else {
-            FirebaseUser user = mAuth.getCurrentUser();
-            Log.d(TAG, "User already signed in: " + user.getEmail());
-            sendUserIdTokenToBackend(user); // Send token if already signed in
+        // Set up sign-out button if present
+        if (binding.signOutButton != null) {
+            binding.signOutButton.setOnClickListener(v -> signOut());
         }
 
-        // Sign-in button (optional UI)
+        // Set up sign-in button
         if (binding.signInButton != null) {
             binding.signInButton.setOnClickListener(v -> {
                 Log.d(TAG, "Sign-in button clicked.");
                 signIn();
             });
         }
+
+        // Trigger sign-in if not already authenticated
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Log.d(TAG, "No user signed in. Initiating sign-in...");
+            signIn();
+        } else {
+            Log.d(TAG, "User already signed in: " + user.getEmail());
+            sendUserIdTokenToBackend(user);
+        }
     }
 
     private void signIn() {
-        Log.d(TAG, "Launching Google Sign-In intent...");
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         signInLauncher.launch(signInIntent);
     }
 
+    private void signOut() {
+        FirebaseAuth.getInstance().signOut();
+        mGoogleSignInClient.signOut().addOnCompleteListener(requireActivity(), task -> {
+            Toast.makeText(getContext(), "Signed out successfully", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "User signed out");
+            // Optionally refresh the UI
+            requireActivity().recreate();
+        });
+    }
+
     private void firebaseAuthWithGoogle(String idToken) {
-        Log.d(TAG, "Authenticating with Firebase using Google ID token...");
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(requireActivity(), task -> {
@@ -120,13 +130,12 @@ public class CalendarPageFragment extends Fragment {
     }
 
     private void sendUserIdTokenToBackend(FirebaseUser user) {
-        user.getIdToken(true).addOnCompleteListener(tokenTask -> {
-            if (tokenTask.isSuccessful()) {
-                String idToken = tokenTask.getResult().getToken();
-                Log.d(TAG, "Sending ID token to backend: " + idToken);
+        user.getIdToken(true).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String idToken = task.getResult().getToken();
                 sendIdTokenToBackend(idToken);
             } else {
-                Log.e(TAG, "Failed to get ID token", tokenTask.getException());
+                Log.e(TAG, "Failed to get ID token", task.getException());
             }
         });
     }
@@ -152,8 +161,7 @@ public class CalendarPageFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    String responseBody = response.body().string();
-                    Log.d(TAG, "Backend response: " + responseBody);
+                    Log.d(TAG, "Backend response: " + response.body().string());
                 } else {
                     Log.e(TAG, "Backend error. Code: " + response.code());
                 }
@@ -166,5 +174,4 @@ public class CalendarPageFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }
