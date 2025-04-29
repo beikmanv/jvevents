@@ -12,7 +12,20 @@
           "package_name": "com.northcoders.jvevents"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "860402469649-94kmp8qom786e6tnloqdqvms9ipmb39m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.northcoders.jvevents",
+            "certificate_hash": "1d765603bde09297fd3852cc1067ca28e8d721f3"
+          }
+        },
+        {
+          "client_id": "860402469649-kd7qmlvtk4abmpf3krp1untd4qsim8og.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCj4QxgjHvGSmRWPXPah0nFhZq_zt74N4c"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "860402469649-kd7qmlvtk4abmpf3krp1untd4qsim8og.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

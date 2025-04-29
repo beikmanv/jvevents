@@ -19,31 +19,37 @@ import com.google.firebase.auth.*;
 import com.northcoders.jvevents.R;
 import com.northcoders.jvevents.databinding.FragmentCalendarPageBinding;
 
+import java.io.IOException;
+
+import okhttp3.*;
+
 public class CalendarPageFragment extends Fragment {
 
     private static final String TAG = "CalendarPageFragment";
+    private static final String BACKEND_URL = "http://10.0.2.2:8085/api/v1/auth/google";
 
     private FragmentCalendarPageBinding binding;
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
 
+    // Launcher for Google Sign-In intent
     private final ActivityResultLauncher<Intent> signInLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                if (result.getResultCode() == getActivity().RESULT_OK) {
+                if (result.getResultCode() == requireActivity().RESULT_OK) {
                     Intent data = result.getData();
                     Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                     try {
                         GoogleSignInAccount account = task.getResult(ApiException.class);
-                        Log.d(TAG, "Google sign-in successful. Account: " + account.getEmail());
+                        Log.d(TAG, "Google sign-in successful: " + account.getEmail());
                         firebaseAuthWithGoogle(account.getIdToken());
                     } catch (ApiException e) {
-                        Log.e(TAG, "Google sign in failed, statusCode=" + e.getStatusCode(), e);
-                        Toast.makeText(getContext(), "Google sign in failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Google sign in failed: " + e.getStatusCode(), e);
+                        Toast.makeText(getContext(), "Google sign-in failed.", Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    Log.w(TAG, "Google sign in canceled or failed with resultCode=" + result.getResultCode());
-                    Toast.makeText(getContext(), "Sign in canceled or failed", Toast.LENGTH_SHORT).show();
+                    Log.w(TAG, "Google sign-in canceled or failed.");
+                    Toast.makeText(getContext(), "Sign-in canceled or failed.", Toast.LENGTH_SHORT).show();
                 }
             }
     );
@@ -54,7 +60,7 @@ public class CalendarPageFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // Must be web client ID
+                .requestIdToken(getString(R.string.default_web_client_id)) // From strings.xml
                 .requestEmail()
                 .build();
 
@@ -71,20 +77,22 @@ public class CalendarPageFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // If not signed in, start sign-in flow
         if (mAuth.getCurrentUser() == null) {
             Log.d(TAG, "No user signed in. Initiating sign-in...");
             signIn();
         } else {
-            Log.d(TAG, "User already signed in: " + mAuth.getCurrentUser().getEmail());
+            FirebaseUser user = mAuth.getCurrentUser();
+            Log.d(TAG, "User already signed in: " + user.getEmail());
+            sendUserIdTokenToBackend(user); // Send token if already signed in
         }
 
+        // Sign-in button (optional UI)
         if (binding.signInButton != null) {
             binding.signInButton.setOnClickListener(v -> {
                 Log.d(TAG, "Sign-in button clicked.");
                 signIn();
             });
-        } else {
-            Log.e(TAG, "signInButton is null. Check your XML layout.");
         }
     }
 
@@ -95,19 +103,62 @@ public class CalendarPageFragment extends Fragment {
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
-        Log.d(TAG, "Authenticating with Firebase using ID token...");
+        Log.d(TAG, "Authenticating with Firebase using Google ID token...");
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Log.d(TAG, "Firebase auth success. User: " + user.getEmail());
+                        Log.d(TAG, "Firebase auth successful: " + user.getEmail());
                         Toast.makeText(getContext(), "Welcome, " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+                        sendUserIdTokenToBackend(user);
                     } else {
                         Log.e(TAG, "Firebase auth failed", task.getException());
-                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Authentication failed.", Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void sendUserIdTokenToBackend(FirebaseUser user) {
+        user.getIdToken(true).addOnCompleteListener(tokenTask -> {
+            if (tokenTask.isSuccessful()) {
+                String idToken = tokenTask.getResult().getToken();
+                Log.d(TAG, "Sending ID token to backend: " + idToken);
+                sendIdTokenToBackend(idToken);
+            } else {
+                Log.e(TAG, "Failed to get ID token", tokenTask.getException());
+            }
+        });
+    }
+
+    private void sendIdTokenToBackend(String idToken) {
+        OkHttpClient client = new OkHttpClient();
+
+        RequestBody body = new FormBody.Builder()
+                .add("idToken", idToken)
+                .build();
+
+        Request request = new Request.Builder()
+                .url(BACKEND_URL)
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.e(TAG, "Backend request failed", e);
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Backend response: " + responseBody);
+                } else {
+                    Log.e(TAG, "Backend error. Code: " + response.code());
+                }
+            }
+        });
     }
 
     @Override
