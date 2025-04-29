@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.northcoders.jvevents.R;
 import com.northcoders.jvevents.databinding.EventItemLayoutBinding;
@@ -32,7 +33,7 @@ public class EventAdapter extends BaseAdapter<EventDTO> {
         return new EventViewHolder(binding);
     }
 
-    public static class EventViewHolder extends BaseViewHolder<EventDTO> {
+    public class EventViewHolder extends BaseViewHolder<EventDTO> {
         private final EventItemLayoutBinding binding;
 
         public EventViewHolder(EventItemLayoutBinding binding) {
@@ -43,7 +44,16 @@ public class EventAdapter extends BaseAdapter<EventDTO> {
         @Override
         public void bind(EventDTO event) {
             binding.setEvent(event);
+            binding.getRoot().setOnClickListener(v -> {
+                if (recyclerViewInterface != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    recyclerViewInterface.onItemClick(getAdapterPosition());
+                }
+            });
         }
     }
-}
 
+    public List<EventDTO> getEvents() {
+        return itemList;
+    }
+
+}
