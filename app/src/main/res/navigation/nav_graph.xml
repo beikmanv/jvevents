@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_events">
+
+    <fragment
+        android:id="@+id/navigation_events"
+        android:name="com.northcoders.jvevents.ui.fragments.EventsFragment"
+        android:label="Events"
+        tools:layout="@layout/fragment_events">
+        <action
+            android:id="@+id/action_navigation_events_to_eventDetailFragment"
+            app:destination="@id/eventDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_register"
+        android:name="com.northcoders.jvevents.ui.fragments.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register" />
+
+    <fragment
+        android:id="@+id/navigation_staff"
+        android:name="com.northcoders.jvevents.ui.fragments.StaffFragment"
+        android:label="Staff"
+        tools:layout="@layout/fragment_staff" />
+
+    <fragment
+        android:id="@+id/eventDetailFragment"
+        android:name="com.northcoders.jvevents.ui.fragments.EventDetailFragment"
+        android:label="Event Details"
+        tools:layout="@layout/fragment_event_detail">
+        <argument
+            android:name="eventId"
+            app:argType="string" />
+    </fragment>
+
+</navigation>

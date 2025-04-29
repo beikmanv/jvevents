@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "860402469649",
+    "project_id": "jv-events",
+    "storage_bucket": "jv-events.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860402469649:android:538bdccd74c9aa5945dab0",
+        "android_client_info": {
+          "package_name": "com.northcoders.jvevents"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj4QxgjHvGSmRWPXPah0nFhZq_zt74N4c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

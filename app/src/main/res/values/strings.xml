@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">JVEvents</string>
+    <!-- Google Client ID -->
+    <string name="default_web_client_id">
+        289849240770-6eqdgj2cnkdrpueav418obkembs44avr.apps.googleusercontent.com
+    </string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_calendar_fragment">Hello Calendar Fragment</string>
+    <string name="hello_staff_fragment">Hello Staff Fragment</string>
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_event_fragment">Hello Event Fragment</string>
+</resources>
