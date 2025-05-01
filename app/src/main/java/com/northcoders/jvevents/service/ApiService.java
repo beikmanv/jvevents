@@ -17,22 +17,22 @@ public interface ApiService {
     Call<List<EventDTO>> getAllEvents();
 
     @GET("events/{eventId}")
-    Call<EventDTO> getEventById(@Path("id") long id);
+    Call<EventDTO> getEventById(@Path("eventId") long eventId);
 
     @POST("events/create")
     Call<EventDTO> createEvent(@Body EventDTO event);
 
     @PUT("events/update/{eventId}")
-    Call<EventDTO> updateEvent(@Path("id") long id, @Body EventDTO event);
+    Call<EventDTO> updateEvent(@Path("eventId") long eventId, @Body EventDTO event);
 
     @DELETE("events/{eventId}")
-    Call<Void> deleteEvent(@Path("id") long id);
+    Call<Void> deleteEvent(@Path("eventId") long eventId);
 
     @POST("events/{eventId}/signup")
-    Call<Void> signupForEvent(@Path("id") long id, @Query("email") String email);
+    Call<Void> signupForEvent(@Path("eventId") long eventId, @Query("email") String email);
 
     @GET("events/{eventId}/users")
-    Call<List<AppUserDTO>> getUsersForEvent(@Path("id") long id);
+    Call<List<AppUserDTO>> getUsersForEvent(@Path("eventId") long eventId);
 
     // ----------------- USERS ---------------------
 
@@ -40,13 +40,13 @@ public interface ApiService {
     Call<List<AppUserDTO>> getAllUsers();
 
     @GET("users/{userId}")
-    Call<AppUserDTO> getUserById(@Path("id") long id);
+    Call<AppUserDTO> getUserById(@Path("userId") long userId);
 
     @DELETE("users/{userId}/delete")
-    Call<Void> deleteUserById(@Path("id") long id);
+    Call<Void> deleteUserById(@Path("userId") long userId);
 
     @GET("users/{userId}/events")
-    Call<List<EventDTO>> getEventsForUser(@Path("id") long userId);
+    Call<List<EventDTO>> getEventsForUser(@Path("userId") long userId);
 
     @GET("users/user")
     Call<Map<String, String>> getCurrentUser(); // Expected map with key "email"
@@ -54,10 +54,13 @@ public interface ApiService {
     // ----------------- ADMIN ---------------------
 
     @PUT("admin/set-staff/{userId}")
-    Call<String> setStaffStatus(@Path("userId") long id, @Query("isStaff") boolean isStaff);
+    Call<String> setStaffStatus(@Path("userId") long userId, @Query("isStaff") boolean isStaff);
 
     @GET("admin/check-staff")
     Call<String> checkIfStaff();
+
+    @GET("admin/is-staff")
+    Call<Boolean> isUserStaff(@Query("email") String email);
 
     // ----------------- AUTH ----------------------
 

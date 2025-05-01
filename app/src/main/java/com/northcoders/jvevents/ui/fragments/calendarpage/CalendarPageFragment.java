@@ -5,23 +5,22 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
 import android.widget.Toast;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.*;
 import com.northcoders.jvevents.R;
 import com.northcoders.jvevents.databinding.FragmentCalendarPageBinding;
-
 import java.io.IOException;
-
 import okhttp3.*;
+
+
 
 public class CalendarPageFragment extends Fragment {
 
@@ -59,6 +58,7 @@ public class CalendarPageFragment extends Fragment {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
+                .requestScopes(new Scope("https://www.googleapis.com/auth/calendar"))
                 .build();
 
         mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
