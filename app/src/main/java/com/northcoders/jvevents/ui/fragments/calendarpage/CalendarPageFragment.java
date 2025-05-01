@@ -79,14 +79,6 @@ public class CalendarPageFragment extends Fragment {
             binding.signOutButton.setOnClickListener(v -> signOut());
         }
 
-        // Set up sign-in button
-        if (binding.signInButton != null) {
-            binding.signInButton.setOnClickListener(v -> {
-                Log.d(TAG, "Sign-in button clicked.");
-                signIn();
-            });
-        }
-
         // Trigger sign-in if not already authenticated
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {

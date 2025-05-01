@@ -16,22 +16,22 @@ public interface ApiService {
     @GET("events")
     Call<List<EventDTO>> getAllEvents();
 
-    @GET("events/{id}")
+    @GET("events/{eventId}")
     Call<EventDTO> getEventById(@Path("id") long id);
 
     @POST("events/create")
     Call<EventDTO> createEvent(@Body EventDTO event);
 
-    @PUT("events/update/{id}")
+    @PUT("events/update/{eventId}")
     Call<EventDTO> updateEvent(@Path("id") long id, @Body EventDTO event);
 
-    @DELETE("events/{id}")
+    @DELETE("events/{eventId}")
     Call<Void> deleteEvent(@Path("id") long id);
 
-    @POST("events/{id}/signup")
+    @POST("events/{eventId}/signup")
     Call<Void> signupForEvent(@Path("id") long id, @Query("email") String email);
 
-    @GET("events/{id}/users")
+    @GET("events/{eventId}/users")
     Call<List<AppUserDTO>> getUsersForEvent(@Path("id") long id);
 
     // ----------------- USERS ---------------------
@@ -39,13 +39,13 @@ public interface ApiService {
     @GET("users")
     Call<List<AppUserDTO>> getAllUsers();
 
-    @GET("users/{id}")
+    @GET("users/{userId}")
     Call<AppUserDTO> getUserById(@Path("id") long id);
 
-    @DELETE("users/{id}/delete")
+    @DELETE("users/{userId}/delete")
     Call<Void> deleteUserById(@Path("id") long id);
 
-    @GET("users/{id}/events")
+    @GET("users/{userId}/events")
     Call<List<EventDTO>> getEventsForUser(@Path("id") long userId);
 
     @GET("users/user")
@@ -61,10 +61,7 @@ public interface ApiService {
 
     // ----------------- AUTH ----------------------
 
-    @POST("auth/google")
+    @POST("auth/firebase/verify-token")
     Call<Map<String, String>> loginWithGoogle(@Body Map<String, String> tokenMap);
-
-    @GET("debug/cookies")
-    Call<String> debugCookies();
 
 }
