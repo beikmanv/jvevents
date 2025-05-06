@@ -46,6 +46,8 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class EventPageFragment extends Fragment implements RecyclerViewInterface {
 
@@ -88,22 +90,56 @@ public class EventPageFragment extends Fragment implements RecyclerViewInterface
     }
 
     private void checkIfUserIsStaff(OnStaffCheckCallback callback) {
-        String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-        ApiService service = RetrofitInstance.getService();
-        Call<Boolean> call = service.isUserStaff(email);
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            callback.onResult(false);
+            return;
+        }
 
-        call.enqueue(new Callback<Boolean>() {
-            @Override
-            public void onResponse(Call<Boolean> call, Response<Boolean> response) {
-                boolean isStaff = response.body() != null && response.body();
-                callback.onResult(isStaff);
-            }
+        FirebaseAuth.getInstance().getCurrentUser().getIdToken(true)
+                .addOnSuccessListener(result -> {
+                    String idToken = result.getToken();
+                    if (idToken == null) {
+                        callback.onResult(false);
+                        return;
+                    }
 
-            @Override
-            public void onFailure(Call<Boolean> call, Throwable t) {
-                callback.onResult(false);
-            }
-        });
+                    OkHttpClient client = new OkHttpClient.Builder()
+                            .addInterceptor(chain -> {
+                                return chain.proceed(chain.request().newBuilder()
+                                        .addHeader("Authorization", "Bearer " + idToken)
+                                        .build());
+                            })
+                            .build();
+
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl("http://10.0.2.2:8085/api/v1/")
+                            .client(client)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+
+                    ApiService authedService = retrofit.create(ApiService.class);
+
+                    authedService.isUserStaff(FirebaseAuth.getInstance().getCurrentUser().getEmail())
+                            .enqueue(new Callback<Boolean>() {
+                                @Override
+                                public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                                    Log.d("DEBUG", "isStaff API raw response: " + response.body());
+                                    boolean isStaff = response.body() != null && response.body();
+                                    callback.onResult(isStaff);
+                                }
+
+                                @Override
+                                public void onFailure(Call<Boolean> call, Throwable t) {
+                                    Log.e("DEBUG", "isStaff check failed", t);
+                                    callback.onResult(false);
+                                }
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("AUTH", "Failed to get ID token", e);
+                    callback.onResult(false);
+                });
     }
 
     @Override

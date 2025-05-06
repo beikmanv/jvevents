@@ -1,6 +1,7 @@
 package com.northcoders.jvevents.ui.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,6 +74,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
         public void bind(EventDTO event) {
             binding.setEvent(event);
+            binding.setClickHandler(eventItemListener);
+
+            Log.d("DEBUG", "Binding event: " + event.getTitle() + ", isStaff=" + isStaff);
 
             if (isStaff) {
                 binding.btnEditEvent.setVisibility(View.VISIBLE);
