@@ -38,4 +38,20 @@ public class RetrofitInstance {
 
         return service;
     }
+
+    public static Retrofit getRetrofitWithAuth(String idToken) {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(chain -> chain.proceed(
+                        chain.request().newBuilder()
+                                .addHeader("Authorization", "Bearer " + idToken)
+                                .build()))
+                .build();
+
+        return new Retrofit.Builder()
+                .baseUrl(Base_URL)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+    }
+
 }

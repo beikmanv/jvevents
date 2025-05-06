@@ -153,7 +153,7 @@ public class CalendarPageFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    Log.d(TAG, "Backend response: " + response.body().string());
+                    Log.d(TAG, "Backend response: " + response.code());
                 } else {
                     Log.e(TAG, "Backend error. Code: " + response.code());
                 }

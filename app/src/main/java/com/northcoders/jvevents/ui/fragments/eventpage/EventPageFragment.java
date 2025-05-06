@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.northcoders.jvevents.R;
+import com.northcoders.jvevents.databinding.DialogEditEventBinding;
 import com.northcoders.jvevents.databinding.FragmentEventPageBinding;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.service.ApiService;
@@ -75,8 +77,23 @@ public class EventPageFragment extends Fragment implements RecyclerViewInterface
 
                         @Override
                         public void onEditEventClick(EventDTO event) {
-                            Toast.makeText(requireContext(), "Edit Event clicked for " + event.getTitle(), Toast.LENGTH_SHORT).show();
+                            LayoutInflater inflater = LayoutInflater.from(requireContext());
+                            DialogEditEventBinding binding = DialogEditEventBinding.inflate(inflater);
+                            binding.setEvent(event); // This enables two-way binding
+
+                            AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                                    .setTitle("Edit Event")
+                                    .setView(binding.getRoot())
+                                    .setPositiveButton("Save", (d, which) -> {
+                                        saveEventChanges(event); // Call API here
+                                    })
+                                    .setNegativeButton("Cancel", null)
+                                    .create();
+
+                            dialog.show();
+
                         }
+
                     });
                     fragmentEventPageBinding.eventListRecyclerView.setAdapter(eventAdapter);
                 });
@@ -262,4 +279,36 @@ public class EventPageFragment extends Fragment implements RecyclerViewInterface
                     .show();
         }
     }
+
+    private void saveEventChanges(EventDTO event) {
+        FirebaseAuth.getInstance().getCurrentUser().getIdToken(true)
+                .addOnSuccessListener(result -> {
+                    String idToken = result.getToken();
+
+                    // ✅ Use the new method to get ApiService with auth header
+                    ApiService api = RetrofitInstance.getRetrofitWithAuth(idToken).create(ApiService.class);
+
+                    api.updateEvent(event.getId(), event).enqueue(new Callback<EventDTO>() {
+                        @Override
+                        public void onResponse(Call<EventDTO> call, Response<EventDTO> response) {
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), "Event updated", Toast.LENGTH_SHORT).show();
+                                eventAdapter.notifyDataSetChanged(); // optional refresh
+                            } else {
+                                Toast.makeText(getContext(), "Update failed: " + response.code(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<EventDTO> call, Throwable t) {
+                            Log.e(TAG, "Update failed", t);
+                        }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to get ID token", e);
+                    Toast.makeText(getContext(), "Authentication failed.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
 }
