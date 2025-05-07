@@ -15,22 +15,32 @@ import com.northcoders.jvevents.databinding.EventItemLayoutBinding;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.ui.mainactivity.RecyclerViewInterface;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
     private final Context context;
     private final List<EventDTO> eventList;
-    private final RecyclerViewInterface recyclerViewInterface;
-    private final boolean isStaff;
+    private RecyclerViewInterface recyclerViewInterface; // ✅ Not final and nullable
+    private boolean isStaff;
     private final EventItemListener eventItemListener;
 
-    public EventAdapter(Context context, List<EventDTO> eventList, RecyclerViewInterface recyclerViewInterface, boolean isStaff, EventItemListener listener) {
+    // ✅ Main Constructor
+    public EventAdapter(Context context, List<EventDTO> eventList, boolean isStaff, EventItemListener listener) {
         this.context = context;
-        this.eventList = eventList;
-        this.recyclerViewInterface = recyclerViewInterface;
+        this.eventList = eventList != null ? eventList : new ArrayList<>();
         this.isStaff = isStaff;
         this.eventItemListener = listener;
+    }
+
+    // ✅ Optional Constructor with RecyclerViewInterface (if needed)
+    public EventAdapter(Context context, List<EventDTO> eventList, boolean isStaff, EventItemListener listener, RecyclerViewInterface recyclerViewInterface) {
+        this.context = context;
+        this.eventList = eventList != null ? eventList : new ArrayList<>();
+        this.isStaff = isStaff;
+        this.eventItemListener = listener;
+        this.recyclerViewInterface = recyclerViewInterface;
     }
 
     @NonNull
@@ -95,11 +105,30 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 }
             });
 
+            // ✅ Safe check for RecyclerViewInterface
             binding.getRoot().setOnClickListener(v -> {
                 if (recyclerViewInterface != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
                     recyclerViewInterface.onItemClick(getAdapterPosition());
                 }
             });
         }
+    }
+
+    // ✅ Method to update the event list dynamically
+    public void updateEvents(List<EventDTO> events) {
+        this.eventList.clear();
+        this.eventList.addAll(events);
+        notifyDataSetChanged();
+    }
+
+    // ✅ Method to dynamically set staff status
+    public void setIsStaff(boolean isStaff) {
+        this.isStaff = isStaff;
+        notifyDataSetChanged();
+    }
+
+    // ✅ Setter for RecyclerViewInterface (optional)
+    public void setRecyclerViewInterface(RecyclerViewInterface recyclerViewInterface) {
+        this.recyclerViewInterface = recyclerViewInterface;
     }
 }

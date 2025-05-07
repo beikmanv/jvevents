@@ -1,4 +1,4 @@
-package com.northcoders.jvevents.ui.fragments.calendarpage;
+package com.northcoders.jvevents.ui.fragments.profilepage;
 
 import android.content.Intent;
 import android.os.Bundle;

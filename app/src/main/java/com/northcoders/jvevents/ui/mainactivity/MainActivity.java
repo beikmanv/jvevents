@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.northcoders.jvevents.R;
-import com.northcoders.jvevents.ui.fragments.calendarpage.ProfilePageFragment;
+import com.northcoders.jvevents.ui.fragments.profilepage.ProfilePageFragment;
 import com.northcoders.jvevents.ui.fragments.eventpage.EventPageFragment;
 
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {

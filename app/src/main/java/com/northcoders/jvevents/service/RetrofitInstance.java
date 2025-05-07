@@ -6,52 +6,61 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import okhttp3.JavaNetCookieJar;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
+import java.util.concurrent.TimeUnit;
 
 public class RetrofitInstance {
 
-    private static final String Base_URL = "http://10.0.2.2:8085/api/v1/";
-    private static ApiService service;
+    private static final String BASE_URL = "http://10.0.2.2:8085/api/v1/";
+    private static Retrofit retrofitInstance;
 
-    public static ApiService getService() {
-        if (service == null) {
+    // Singleton Retrofit instance
+    private static Retrofit getRetrofitInstance() {
+        if (retrofitInstance == null) {
+            synchronized (RetrofitInstance.class) {
+                if (retrofitInstance == null) {
+                    HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+                    interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(interceptor)
-                    .cookieJar(new SessionCookieJar())
-                    .build();
+                    OkHttpClient client = new OkHttpClient.Builder()
+                            .addInterceptor(interceptor)
+                            .cookieJar(new SessionCookieJar())
+                            .connectTimeout(30, TimeUnit.SECONDS)
+                            .readTimeout(30, TimeUnit.SECONDS)
+                            .build();
 
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(Base_URL)
-                    .client(client)
-                    .addConverterFactory(ScalarsConverterFactory.create()) // 🔥 Add this before Gson
-                    .addConverterFactory(GsonConverterFactory.create())    // Keep Gson after Scalars
-                    .build();
-
-            service = retrofit.create(ApiService.class);
+                    retrofitInstance = new Retrofit.Builder()
+                            .baseUrl(BASE_URL)
+                            .client(client)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+                }
+            }
         }
-
-        return service;
+        return retrofitInstance;
     }
 
-    public static Retrofit getRetrofitWithAuth(String idToken) {
+    // Public method to get API Service
+    public static ApiService getApiService() {
+        return getRetrofitInstance().create(ApiService.class);
+    }
+
+    // Authenticated Retrofit instance
+    public static ApiService getApiServiceWithAuth(String idToken) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(chain -> chain.proceed(
                         chain.request().newBuilder()
                                 .addHeader("Authorization", "Bearer " + idToken)
                                 .build()))
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
                 .build();
 
-        return new Retrofit.Builder()
-                .baseUrl(Base_URL)
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-    }
 
+        return retrofit.create(ApiService.class);
+    }
 }
