@@ -132,7 +132,7 @@ public class EventRepository {
         return isUserStaffLiveData;
     }
 
-    public void signUpForEvent(Long eventId, String email, Consumer<Boolean> callback) {
+    public void signUpForEvent(ApiService apiService, Long eventId, String email, Consumer<Boolean> callback) {
         Call<Void> call = apiService.signupForEvent(eventId, email);
         call.enqueue(new Callback<Void>() {
             @Override
@@ -152,5 +152,6 @@ public class EventRepository {
             }
         });
     }
+
 
 }

@@ -84,10 +84,17 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 }
             }
         });
+
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public void onItemClick(EventDTO event) {
+        showSignUpConfirmationDialog(event);
         viewModel.signUpForEvent(event);
     }
 
@@ -174,5 +181,16 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                     .setPositiveButton("OK", null)
                     .show();
         }
+    }
+
+    private void showSignUpConfirmationDialog(EventDTO event) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Sign Up for Event")
+                .setMessage("Do you want to sign up for \"" + event.getTitle() + "\"?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    viewModel.signUpForEvent(event); // Accessing the method from ViewModel
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

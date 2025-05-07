@@ -1,5 +1,6 @@
 package com.northcoders.jvevents.service;
 
+import com.northcoders.jvevents.interceptor.FirebaseAuthInterceptor;
 import com.northcoders.jvevents.util.SessionCookieJar;
 
 import okhttp3.OkHttpClient;
@@ -19,7 +20,7 @@ public class RetrofitInstance {
             synchronized (RetrofitInstance.class) {
                 if (retrofitInstance == null) {
                     HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-                    interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+                    interceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
 
                     OkHttpClient client = new OkHttpClient.Builder()
                             .addInterceptor(interceptor)
@@ -44,13 +45,34 @@ public class RetrofitInstance {
         return getRetrofitInstance().create(ApiService.class);
     }
 
-    // Authenticated Retrofit instance
+//    // Authenticated Retrofit instance
+//    public static ApiService getApiServiceWithAuth(String idToken) {
+//        OkHttpClient client = new OkHttpClient.Builder()
+//                .addInterceptor(chain -> chain.proceed(
+//                        chain.request().newBuilder()
+//                                .addHeader("Authorization", "Bearer " + idToken)
+//                                .build()))
+//                .connectTimeout(30, TimeUnit.SECONDS)
+//                .readTimeout(30, TimeUnit.SECONDS)
+//                .build();
+//
+//        Retrofit retrofit = new Retrofit.Builder()
+//                .baseUrl(BASE_URL)
+//                .client(client)
+//                .addConverterFactory(GsonConverterFactory.create())
+//                .build();
+//
+//        return retrofit.create(ApiService.class);
+//    }
+
     public static ApiService getApiServiceWithAuth(String idToken) {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(chain -> chain.proceed(
-                        chain.request().newBuilder()
-                                .addHeader("Authorization", "Bearer " + idToken)
-                                .build()))
+                .addInterceptor(new FirebaseAuthInterceptor(idToken))
+                .addInterceptor(loggingInterceptor)
+                .cookieJar(new SessionCookieJar())
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .build();

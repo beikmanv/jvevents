@@ -12,6 +12,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.repository.EventRepository;
+import com.northcoders.jvevents.service.ApiService;
+import com.northcoders.jvevents.service.RetrofitInstance;
 
 import java.util.List;
 
@@ -23,6 +25,11 @@ public class EventPageViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> updateEventStatus = new MutableLiveData<>();
     private final MutableLiveData<EventDTO> selectedEvent = new MutableLiveData<>();
     private final MutableLiveData<Boolean> launchCalendarEvent = new MutableLiveData<>();
+    private final MutableLiveData<String> toastMessage = new MutableLiveData<>();
+
+    public LiveData<String> getToastMessage() {
+        return toastMessage;
+    }
 
     public EventPageViewModel(@NonNull Application application) {
         super(application);
@@ -74,18 +81,30 @@ public class EventPageViewModel extends AndroidViewModel {
     public void signUpForEvent(EventDTO event) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            String email = user.getEmail();
-            repository.signUpForEvent(event.getId(), email, success -> {
-                if (success) {
-                    selectedEvent.setValue(event);
-                    launchCalendarEvent.setValue(true);
-                } else {
-                    launchCalendarEvent.setValue(false);
-                }
-            });
+            user.getIdToken(true)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            String idToken = task.getResult().getToken();
+                            String email = user.getEmail();
+                            ApiService apiService = RetrofitInstance.getApiServiceWithAuth(idToken);
+                            repository.signUpForEvent(apiService, event.getId(), email, success -> {
+                                if (success) {
+                                    selectedEvent.setValue(event);
+                                    launchCalendarEvent.setValue(true);
+                                    toastMessage.setValue("You signed up for \"" + event.getTitle() + "\"");
+                                } else {
+                                    launchCalendarEvent.setValue(false);
+                                    toastMessage.setValue("You're already signed up!");
+                                }
+                            });
+                        } else {
+                            launchCalendarEvent.setValue(false);
+                            toastMessage.setValue("Failed to retrieve ID token.");
+                        }
+                    });
         } else {
             launchCalendarEvent.setValue(false);
-            Log.e("EventPageViewModel", "User is not authenticated.");
+            toastMessage.setValue("User is not authenticated.");
         }
     }
 
