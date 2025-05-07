@@ -7,9 +7,6 @@
             name="event"
             type="com.northcoders.jvevents.model.EventDTO" />
 
-        <variable
-            name="clickHandler"
-            type="com.northcoders.jvevents.ui.adapters.EventAdapter.EventItemListener" />
     </data>
 
     <androidx.cardview.widget.CardView

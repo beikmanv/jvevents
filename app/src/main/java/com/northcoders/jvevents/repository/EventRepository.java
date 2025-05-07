@@ -7,33 +7,39 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GetTokenResult;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.service.ApiService;
 import com.northcoders.jvevents.service.RetrofitInstance;
+import com.northcoders.jvevents.util.SignUpCallback;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class EventRepository {
-    private final ApiService service;
+    private final ApiService apiService;
     private final MutableLiveData<List<EventDTO>> allEventsLiveData = new MutableLiveData<>();
     private final MutableLiveData<EventDTO> singleEventLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isUserStaffLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> updateEventStatus = new MutableLiveData<>();
 
     public EventRepository(Application application) {
-        this.service = RetrofitInstance.getApiService();
+        this.apiService = RetrofitInstance.getApiService();
     }
 
-    public MutableLiveData<List<EventDTO>> getAllEventsLiveData() {
-        service.getAllEvents().enqueue(new Callback<List<EventDTO>>() {
+    // ✅ Fetch All Events
+    public LiveData<List<EventDTO>> getAllEventsLiveData() {
+        apiService.getAllEvents().enqueue(new Callback<List<EventDTO>>() {
             @Override
             public void onResponse(Call<List<EventDTO>> call, Response<List<EventDTO>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     allEventsLiveData.setValue(response.body());
+                } else {
+                    Log.e("EventRepository", "Failed to fetch events: " + response.code());
                 }
             }
 
@@ -45,8 +51,9 @@ public class EventRepository {
         return allEventsLiveData;
     }
 
-    public MutableLiveData<EventDTO> getEventByIdLiveData(long id) {
-        service.getEventById(id).enqueue(new Callback<EventDTO>() {
+    // ✅ Fetch Single Event by ID
+    public LiveData<EventDTO> getEventByIdLiveData(long id) {
+        apiService.getEventById(id).enqueue(new Callback<EventDTO>() {
             @Override
             public void onResponse(Call<EventDTO> call, Response<EventDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -62,27 +69,33 @@ public class EventRepository {
         return singleEventLiveData;
     }
 
-    public MutableLiveData<Boolean> updateEvent(EventDTO event) {
+    // ✅ Update Event (For Staff)
+    public LiveData<Boolean> updateEvent(EventDTO event) {
+        MutableLiveData<Boolean> result = new MutableLiveData<>();
         FirebaseAuth.getInstance().getCurrentUser().getIdToken(true)
-                .addOnSuccessListener(result -> {
-                    String idToken = result.getToken();
+                .addOnSuccessListener(tokenResult -> {
+                    String idToken = tokenResult.getToken();
                     ApiService api = RetrofitInstance.getApiServiceWithAuth(idToken);
                     api.updateEvent(event.getId(), event).enqueue(new Callback<EventDTO>() {
                         @Override
                         public void onResponse(Call<EventDTO> call, Response<EventDTO> response) {
-                            updateEventStatus.setValue(response.isSuccessful());
+                            result.setValue(response.isSuccessful());
                         }
 
                         @Override
                         public void onFailure(Call<EventDTO> call, Throwable t) {
-                            updateEventStatus.setValue(false);
+                            result.setValue(false);
                         }
                     });
+                })
+                .addOnFailureListener(e -> {
+                    result.setValue(false);
+                    Log.e("EventRepository", "Failed to get ID token: " + e.getMessage());
                 });
-        return updateEventStatus;
+        return result;
     }
 
-    // ✅ Check if user is staff (RESTORED)
+    // ✅ Check if User is Staff
     public void checkIfUserIsStaff() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             isUserStaffLiveData.setValue(false);
@@ -90,8 +103,8 @@ public class EventRepository {
         }
 
         FirebaseAuth.getInstance().getCurrentUser().getIdToken(true)
-                .addOnSuccessListener(result -> {
-                    String idToken = result.getToken();
+                .addOnSuccessListener(tokenResult -> {
+                    String idToken = tokenResult.getToken();
                     ApiService authedService = RetrofitInstance.getApiServiceWithAuth(idToken);
                     authedService.isUserStaff(FirebaseAuth.getInstance().getCurrentUser().getEmail())
                             .enqueue(new Callback<Boolean>() {
@@ -118,4 +131,26 @@ public class EventRepository {
     public LiveData<Boolean> getIsUserStaff() {
         return isUserStaffLiveData;
     }
+
+    public void signUpForEvent(Long eventId, String email, Consumer<Boolean> callback) {
+        Call<Void> call = apiService.signupForEvent(eventId, email);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.accept(true);
+                } else if (response.code() == 409) {
+                    callback.accept(false); // Already signed up
+                } else {
+                    callback.accept(false);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.accept(false);
+            }
+        });
+    }
+
 }

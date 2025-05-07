@@ -5,6 +5,8 @@ import android.widget.Toast;
 
 import com.northcoders.jvevents.model.EventDTO;
 
+// CURRENTLY NOT USED
+
 public class EventPageClickHandlers {
 
     public void onEventClicked(View view, EventDTO event) {
