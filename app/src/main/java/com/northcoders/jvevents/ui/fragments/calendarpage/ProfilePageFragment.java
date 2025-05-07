@@ -16,18 +16,19 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.*;
 import com.northcoders.jvevents.R;
-import com.northcoders.jvevents.databinding.FragmentCalendarPageBinding;
+import com.northcoders.jvevents.databinding.FragmentProfilePageBinding;
+
 import java.io.IOException;
 import okhttp3.*;
 
 
 
-public class CalendarPageFragment extends Fragment {
+public class ProfilePageFragment extends Fragment {
 
     private static final String TAG = "CalendarPageFragment";
     private static final String BACKEND_URL = "http://10.0.2.2:8085/api/v1/auth/google";
 
-    private FragmentCalendarPageBinding binding;
+    private FragmentProfilePageBinding binding;
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
 
@@ -66,7 +67,7 @@ public class CalendarPageFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = FragmentCalendarPageBinding.inflate(inflater, container, false);
+        binding = FragmentProfilePageBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 

@@ -8,9 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.northcoders.jvevents.R;
-import com.northcoders.jvevents.ui.fragments.calendarpage.CalendarPageFragment;
+import com.northcoders.jvevents.ui.fragments.calendarpage.ProfilePageFragment;
 import com.northcoders.jvevents.ui.fragments.eventpage.EventPageFragment;
-import com.northcoders.jvevents.ui.fragments.staffpage.StaffPageFragment;
 
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
 
@@ -18,8 +17,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     // Use one instance of each fragment to avoid recreation
     private final EventPageFragment eventPageFragment = new EventPageFragment();
-    private final CalendarPageFragment calendarPageFragment = new CalendarPageFragment();
-    private final StaffPageFragment staffPageFragment = new StaffPageFragment();
+    private final ProfilePageFragment calendarPageFragment = new ProfilePageFragment();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,19 +37,13 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
 
         // Optionally navigate from intent
-        if (getIntent().hasExtra("navigateTo")) {
+        else if (getIntent().hasExtra("navigateTo")) {
             String destination = getIntent().getStringExtra("navigateTo");
             if ("CalendarPageFragment".equals(destination)) {
-                bottomNavBar.setSelectedItemId(R.id.calendarButton);
+                bottomNavBar.setSelectedItemId(R.id.profileButton);
                 getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.baseFragment, calendarPageFragment)
-                        .commit();
-            } else if ("StaffPageFragment".equals(destination)) {
-                bottomNavBar.setSelectedItemId(R.id.staffButton);
-                getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.baseFragment, staffPageFragment)
                         .commit();
             }
         }
@@ -69,18 +61,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return true;
         }
 
-        if (itemId == R.id.calendarButton) {
+        if (itemId == R.id.profileButton) {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.baseFragment, calendarPageFragment)
-                    .commit();
-            return true;
-        }
-
-        if (itemId == R.id.staffButton) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.baseFragment, staffPageFragment)
                     .commit();
             return true;
         }

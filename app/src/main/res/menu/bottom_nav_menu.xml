@@ -9,14 +9,7 @@
         />
 
     <item
-        android:id="@+id/calendarButton"
-        android:title=" "
-        android:icon="@drawable/ic_android_black_24dp"
-        android:iconTint="@color/black"
-        />
-
-    <item
-        android:id="@+id/staffButton"
+        android:id="@+id/profileButton"
         android:title=" "
         android:icon="@drawable/ic_android_black_24dp"
         android:iconTint="@color/black"
