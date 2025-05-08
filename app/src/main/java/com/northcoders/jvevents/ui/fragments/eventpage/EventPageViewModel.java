@@ -21,7 +21,6 @@ public class EventPageViewModel extends AndroidViewModel {
     private final EventRepository repository;
     private final MutableLiveData<EventDTO> eventLiveData = new MutableLiveData<>();
     private final MutableLiveData<List<EventDTO>> allEventsLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> isUserStaffLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> updateEventStatus = new MutableLiveData<>();
     private final MutableLiveData<EventDTO> selectedEvent = new MutableLiveData<>();
     private final MutableLiveData<Boolean> launchCalendarEvent = new MutableLiveData<>();
@@ -81,30 +80,28 @@ public class EventPageViewModel extends AndroidViewModel {
     public void signUpForEvent(EventDTO event) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            user.getIdToken(true)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            String idToken = task.getResult().getToken();
-                            String email = user.getEmail();
-                            ApiService apiService = RetrofitInstance.getApiServiceWithAuth(idToken);
-                            repository.signUpForEvent(apiService, event.getId(), email, success -> {
-                                if (success) {
-                                    selectedEvent.setValue(event);
-                                    launchCalendarEvent.setValue(true);
-                                    toastMessage.setValue("You signed up for \"" + event.getTitle() + "\"");
-                                } else {
-                                    launchCalendarEvent.setValue(false);
-                                    toastMessage.setValue("You're already signed up!");
-                                }
-                            });
+            user.getIdToken(true).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    String idToken = task.getResult().getToken();
+                    String email = user.getEmail();
+                    ApiService apiService = RetrofitInstance.getApiServiceWithAuth(idToken);
+                    repository.signUpForEvent(apiService, event.getId(), email, success -> {
+                        if (success) {
+                            selectedEvent.setValue(event);
+                            launchCalendarEvent.setValue(true);  // Trigger calendar dialog
+                            toastMessage.setValue("Signed up for \"" + event.getTitle() + "\"");
                         } else {
-                            launchCalendarEvent.setValue(false);
-                            toastMessage.setValue("Failed to retrieve ID token.");
+                            selectedEvent.setValue(event);
+                            toastMessage.setValue("Already signed up!");
+                            launchCalendarEvent.setValue(true);  // Trigger calendar dialog
                         }
                     });
+                } else {
+                    toastMessage.setValue("Failed to get ID token.");
+                }
+            });
         } else {
-            launchCalendarEvent.setValue(false);
-            toastMessage.setValue("User is not authenticated.");
+            toastMessage.setValue("User not authenticated.");
         }
     }
 

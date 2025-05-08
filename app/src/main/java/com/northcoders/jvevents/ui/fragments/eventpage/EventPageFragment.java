@@ -95,7 +95,6 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
     @Override
     public void onItemClick(EventDTO event) {
         showSignUpConfirmationDialog(event);
-        viewModel.signUpForEvent(event);
     }
 
     @Override
@@ -188,7 +187,7 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 .setTitle("Sign Up for Event")
                 .setMessage("Do you want to sign up for \"" + event.getTitle() + "\"?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    viewModel.signUpForEvent(event); // Accessing the method from ViewModel
+                    viewModel.signUpForEvent(event);
                 })
                 .setNegativeButton("No", null)
                 .show();

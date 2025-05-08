@@ -45,26 +45,6 @@ public class RetrofitInstance {
         return getRetrofitInstance().create(ApiService.class);
     }
 
-//    // Authenticated Retrofit instance
-//    public static ApiService getApiServiceWithAuth(String idToken) {
-//        OkHttpClient client = new OkHttpClient.Builder()
-//                .addInterceptor(chain -> chain.proceed(
-//                        chain.request().newBuilder()
-//                                .addHeader("Authorization", "Bearer " + idToken)
-//                                .build()))
-//                .connectTimeout(30, TimeUnit.SECONDS)
-//                .readTimeout(30, TimeUnit.SECONDS)
-//                .build();
-//
-//        Retrofit retrofit = new Retrofit.Builder()
-//                .baseUrl(BASE_URL)
-//                .client(client)
-//                .addConverterFactory(GsonConverterFactory.create())
-//                .build();
-//
-//        return retrofit.create(ApiService.class);
-//    }
-
     public static ApiService getApiServiceWithAuth(String idToken) {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
