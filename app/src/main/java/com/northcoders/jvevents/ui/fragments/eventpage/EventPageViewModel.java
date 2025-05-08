@@ -19,16 +19,10 @@ import java.util.List;
 
 public class EventPageViewModel extends AndroidViewModel {
     private final EventRepository repository;
-    private final MutableLiveData<EventDTO> eventLiveData = new MutableLiveData<>();
-    private final MutableLiveData<List<EventDTO>> allEventsLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> updateEventStatus = new MutableLiveData<>();
     private final MutableLiveData<EventDTO> selectedEvent = new MutableLiveData<>();
     private final MutableLiveData<Boolean> launchCalendarEvent = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> showCalendarThankYou = new MutableLiveData<>();
     private final MutableLiveData<String> toastMessage = new MutableLiveData<>();
-
-    public LiveData<String> getToastMessage() {
-        return toastMessage;
-    }
 
     public EventPageViewModel(@NonNull Application application) {
         super(application);
@@ -39,74 +33,78 @@ public class EventPageViewModel extends AndroidViewModel {
         return repository.getAllEventsLiveData();
     }
 
-    public LiveData<EventDTO> getEvent() {
-        return eventLiveData;
+    public LiveData<EventDTO> getSelectedEvent() {
+        return selectedEvent;
     }
 
-    public void fetchEventById(long id) {
-        eventLiveData.setValue(repository.getEventByIdLiveData(id).getValue());
+    public void updateEvent(EventDTO event) {
+        repository.updateEvent(event).observeForever(success -> {
+            if (Boolean.TRUE.equals(success)) {
+                fetchAllEvents(); // Refresh the event list
+                toastMessage.setValue("Event updated successfully.");
+            } else {
+                toastMessage.setValue("Failed to update event.");
+            }
+        });
+    }
+
+    public LiveData<Boolean> getLaunchCalendarEvent() {
+        return launchCalendarEvent;
+    }
+
+    public LiveData<Boolean> getShowCalendarThankYou() {
+        return showCalendarThankYou;
+    }
+
+    public LiveData<String> getToastMessage() {
+        return toastMessage;
     }
 
     public void fetchAllEvents() {
-        allEventsLiveData.setValue(repository.getAllEventsLiveData().getValue());
+        repository.getAllEventsLiveData();
     }
 
     public void checkIfUserIsStaff() {
         repository.checkIfUserIsStaff();
     }
 
-    public void updateEvent(EventDTO event) {
-        updateEventStatus.setValue(repository.updateEvent(event).getValue());
-    }
-
     public LiveData<Boolean> isUserStaff() {
         return repository.getIsUserStaff();
     }
 
-    public LiveData<Boolean> getUpdateEventStatus() {
-        return updateEventStatus;
-    }
-
-    // ✅ Getter for selected event
-    public LiveData<EventDTO> getSelectedEvent() {
-        return selectedEvent;
-    }
-
-    // ✅ Getter for launch calendar event flag
-    public LiveData<Boolean> getLaunchCalendarEvent() {
-        return launchCalendarEvent;
+    public void editEvent(EventDTO event) {
+        repository.updateEvent(event).observeForever(success -> {
+            toastMessage.setValue(success ? "Event updated successfully." : "Failed to update event.");
+        });
     }
 
     public void signUpForEvent(EventDTO event) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            user.getIdToken(true).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    String idToken = task.getResult().getToken();
-                    String email = user.getEmail();
-                    ApiService apiService = RetrofitInstance.getApiServiceWithAuth(idToken);
-                    repository.signUpForEvent(apiService, event.getId(), email, success -> {
-                        if (success) {
-                            selectedEvent.setValue(event);
-                            launchCalendarEvent.setValue(true);  // Trigger calendar dialog
-                            toastMessage.setValue("Signed up for \"" + event.getTitle() + "\"");
-                        } else {
-                            selectedEvent.setValue(event);
-                            toastMessage.setValue("Already signed up!");
-                            launchCalendarEvent.setValue(true);  // Trigger calendar dialog
-                        }
-                    });
-                } else {
-                    toastMessage.setValue("Failed to get ID token.");
-                }
-            });
-        } else {
-            toastMessage.setValue("User not authenticated.");
-        }
+        repository.signUpForEvent(event.getId(), success -> {
+            if (success) {
+                selectedEvent.setValue(event);
+                launchCalendarEvent.setValue(true);
+            } else {
+                toastMessage.setValue("Already signed up!");
+            }
+        });
     }
 
-    // ✅ Method to reset the launch calendar event
+    public void triggerCalendarThankYou() {
+        showCalendarThankYou.setValue(true);
+    }
+
     public void resetLaunchCalendarEvent() {
         launchCalendarEvent.setValue(false);
     }
+
+    public void resetShowCalendarThankYou() {
+        showCalendarThankYou.setValue(false);
+    }
+
+    public void triggerCalendarEvent(EventDTO event) {
+        selectedEvent.setValue(event);
+        launchCalendarEvent.setValue(true);
+    }
 }
+
+

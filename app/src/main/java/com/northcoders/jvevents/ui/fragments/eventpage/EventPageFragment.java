@@ -1,7 +1,6 @@
 package com.northcoders.jvevents.ui.fragments.eventpage;
 
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -33,7 +32,6 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
     private FragmentEventPageBinding binding;
     private EventPageViewModel viewModel;
     private EventAdapter eventAdapter;
-    private boolean showCalendarThankYou = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -57,21 +55,16 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
 
     private void observeViewModel() {
         viewModel.getAllEvents().observe(getViewLifecycleOwner(), events -> {
-            if (events != null) {
-                eventAdapter.updateEvents(events);
-            }
+            if (events != null) eventAdapter.updateEvents(events);
         });
 
         viewModel.isUserStaff().observe(getViewLifecycleOwner(), isStaff -> {
             eventAdapter.setIsStaff(isStaff != null && isStaff);
         });
 
-        viewModel.getUpdateEventStatus().observe(getViewLifecycleOwner(), isSuccess -> {
-            if (Boolean.TRUE.equals(isSuccess)) {
-                Toast.makeText(requireContext(), "Event updated successfully", Toast.LENGTH_SHORT).show();
-                viewModel.fetchAllEvents();
-            } else if (Boolean.FALSE.equals(isSuccess)) {
-                Toast.makeText(requireContext(), "Failed to update event", Toast.LENGTH_SHORT).show();
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -85,16 +78,17 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
             }
         });
 
-        viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
-            if (message != null && !message.isEmpty()) {
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+        viewModel.getShowCalendarThankYou().observe(getViewLifecycleOwner(), shouldShow -> {
+            if (Boolean.TRUE.equals(shouldShow)) {
+                showCalendarThankYouDialog();
+                viewModel.resetShowCalendarThankYou();
             }
         });
     }
 
     @Override
     public void onItemClick(EventDTO event) {
-        showSignUpConfirmationDialog(event);
+        showSignUpAndCalendarConfirmationDialog(event);
     }
 
     @Override
@@ -107,26 +101,23 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
         showEditEventDialog(event);
     }
 
-    private void showEditEventDialog(EventDTO event) {
-        LayoutInflater inflater = LayoutInflater.from(requireContext());
-        DialogEditEventBinding dialogBinding = DialogEditEventBinding.inflate(inflater);
-        dialogBinding.setEvent(event);
-
+    private void showSignUpAndCalendarConfirmationDialog(EventDTO event) {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Edit Event")
-                .setView(dialogBinding.getRoot())
-                .setPositiveButton("Save", (dialog, which) -> {
-                    viewModel.updateEvent(event);
+                .setTitle("Sign Up and Add to Calendar")
+                .setMessage("Do you want to sign up for \"" + event.getTitle() + "\" and add it to your calendar?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    viewModel.signUpForEvent(event);
+                    viewModel.triggerCalendarEvent(event);  // Trigger calendar launch
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton("No", null)
                 .show();
     }
 
     private void launchCalendarIntent(EventDTO event) {
         Context context = requireContext();
         PackageManager pm = context.getPackageManager();
-
         long startMillis;
+
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
             Date date = sdf.parse(event.getEventDate());
@@ -144,52 +135,31 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 .putExtra(CalendarContract.Events.DESCRIPTION, event.getDescription())
                 .putExtra(CalendarContract.Events.EVENT_LOCATION, event.getLocation());
 
-        if (insertIntent.resolveActivity(pm) != null) {
-            showCalendarThankYou = true;
-            context.startActivity(insertIntent);
-        } else {
-            new AlertDialog.Builder(context)
-                    .setTitle("Open Google Calendar")
-                    .setMessage("We'll open your Calendar now. Please add the event manually.")
-                    .setPositiveButton("OK", (dialog, which) -> {
-                        Intent fallbackIntent = new Intent();
-                        fallbackIntent.setComponent(new ComponentName(
-                                "com.google.android.calendar",
-                                "com.android.calendar.AllInOneActivity"
-                        ));
-                        if (fallbackIntent.resolveActivity(pm) != null) {
-                            showCalendarThankYou = true;
-                            context.startActivity(fallbackIntent);
-                        } else {
-                            Toast.makeText(context, "No calendar app found.", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
-        }
+        context.startActivity(insertIntent);
+        viewModel.triggerCalendarThankYou();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (showCalendarThankYou) {
-            showCalendarThankYou = false;
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("Event Added")
-                    .setMessage("Thanks for adding the event!")
-                    .setPositiveButton("OK", null)
-                    .show();
-        }
-    }
-
-    private void showSignUpConfirmationDialog(EventDTO event) {
+    private void showCalendarThankYouDialog() {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Sign Up for Event")
-                .setMessage("Do you want to sign up for \"" + event.getTitle() + "\"?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    viewModel.signUpForEvent(event);
+                .setTitle("Event Added")
+                .setMessage("Thanks for adding the event!")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void showEditEventDialog(EventDTO event) {
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        DialogEditEventBinding dialogBinding = DialogEditEventBinding.inflate(inflater);
+        dialogBinding.setEvent(event);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Edit Event")
+                .setView(dialogBinding.getRoot())
+                .setPositiveButton("Save", (dialog, which) -> {
+                    EventDTO updatedEvent = dialogBinding.getEvent(); // Get the updated event
+                    viewModel.updateEvent(updatedEvent);
                 })
-                .setNegativeButton("No", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 }
