@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.northcoders.jvevents.R;
-import com.northcoders.jvevents.ui.fragments.profilepage.ProfilePageFragment;
+import com.northcoders.jvevents.ui.fragments.userpage.UserPageFragment;
 import com.northcoders.jvevents.ui.fragments.eventpage.EventPageFragment;
 
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     // Use one instance of each fragment to avoid recreation
     private final EventPageFragment eventPageFragment = new EventPageFragment();
-    private final ProfilePageFragment calendarPageFragment = new ProfilePageFragment();
+    private final UserPageFragment calendarPageFragment = new UserPageFragment();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
