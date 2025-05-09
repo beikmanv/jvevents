@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -29,9 +28,9 @@ import java.util.Locale;
 
 public class EventPageFragment extends Fragment implements EventAdapter.OnEventActionListener {
 
-    private FragmentEventPageBinding binding;
-    private EventPageViewModel viewModel;
-    private EventAdapter eventAdapter;
+    private FragmentEventPageBinding binding; // Connects the layout (UI) to this code.
+    private EventPageViewModel viewModel; // Manages all the data and logic for this fragment.
+    private EventAdapter eventAdapter; // Manages the list of events (RecyclerView).
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,11 +47,12 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
     }
 
     private void setupRecyclerView() {
-        eventAdapter = new EventAdapter(requireContext(), new ArrayList<>(), false, this);
+        eventAdapter = new EventAdapter(new ArrayList<>(), false, this);
         binding.eventListRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.eventListRecyclerView.setAdapter(eventAdapter);
     }
 
+    // This listens for changes in the data (from the ViewModel)
     private void observeViewModel() {
         viewModel.getAllEvents().observe(getViewLifecycleOwner(), events -> {
             if (events != null) eventAdapter.updateEvents(events);

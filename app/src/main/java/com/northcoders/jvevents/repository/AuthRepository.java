@@ -37,8 +37,13 @@ public class AuthRepository {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
-                Log.d("AuthRepository", "Backend response: " + response.code());
-                callback.onComplete(response.isSuccessful());
+                try (ResponseBody responseBody = response.body()) {
+                    Log.d("AuthRepository", "Backend response: " + response.code());
+                    callback.onComplete(response.isSuccessful());
+                } catch (Exception e) {
+                    Log.e("AuthRepository", "Error reading response body", e);
+                    callback.onComplete(false);
+                }
             }
         });
     }

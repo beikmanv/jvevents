@@ -17,6 +17,9 @@ import com.northcoders.jvevents.service.RetrofitInstance;
 
 import java.util.List;
 
+// It is the brain of the EventPageFragment. It handles all the logic and data that the fragment needs.
+// It is designed to store and manage UI-related data in a way that survives configuration changes (like screen rotations).
+// It separates UI logic (handled in the Fragment) from business logic and data (handled here). It connects your EventPageFragment with your EventRepository.
 public class EventPageViewModel extends AndroidViewModel {
     private final EventRepository repository;
     private final MutableLiveData<EventDTO> selectedEvent = new MutableLiveData<>();
@@ -70,12 +73,6 @@ public class EventPageViewModel extends AndroidViewModel {
 
     public LiveData<Boolean> isUserStaff() {
         return repository.getIsUserStaff();
-    }
-
-    public void editEvent(EventDTO event) {
-        repository.updateEvent(event).observeForever(success -> {
-            toastMessage.setValue(success ? "Event updated successfully." : "Failed to update event.");
-        });
     }
 
     public void signUpForEvent(EventDTO event) {

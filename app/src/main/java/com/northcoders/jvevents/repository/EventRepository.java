@@ -19,6 +19,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+// This is the data manager. It fetches and stores event data.
 public class EventRepository {
     private final ApiService apiService;
     private final MutableLiveData<List<EventDTO>> allEventsLiveData = new MutableLiveData<>();

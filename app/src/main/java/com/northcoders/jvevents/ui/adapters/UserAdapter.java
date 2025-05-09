@@ -6,23 +6,26 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.northcoders.jvevents.R;
 import com.northcoders.jvevents.databinding.UserItemLayoutBinding;
 import com.northcoders.jvevents.model.AppUserDTO;
-import com.northcoders.jvevents.ui.mainactivity.RecyclerViewInterface;
 
 import java.util.List;
 
-public class UserAdapter extends BaseAdapter<AppUserDTO> {
+public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
+    private final Context context;
+    private final List<AppUserDTO> userList;
 
-    public UserAdapter(Context context, List<AppUserDTO> userList, RecyclerViewInterface recyclerViewInterface) {
-        super(context, userList, recyclerViewInterface);
+    public UserAdapter(Context context, List<AppUserDTO> userList) {
+        this.context = context;
+        this.userList = userList;
     }
 
     @NonNull
     @Override
-    public BaseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         UserItemLayoutBinding binding = DataBindingUtil.inflate(
                 LayoutInflater.from(parent.getContext()),
                 R.layout.user_item_layout,
@@ -33,11 +36,16 @@ public class UserAdapter extends BaseAdapter<AppUserDTO> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull BaseViewHolder holder, int position) {
-        super.onBindViewHolder(holder, position);
+    public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
+        holder.bind(userList.get(position));
     }
 
-    public static class UserViewHolder extends BaseViewHolder<AppUserDTO> {
+    @Override
+    public int getItemCount() {
+        return userList.size();
+    }
+
+    class UserViewHolder extends RecyclerView.ViewHolder {
         private final UserItemLayoutBinding binding;
 
         public UserViewHolder(UserItemLayoutBinding binding) {
@@ -45,7 +53,6 @@ public class UserAdapter extends BaseAdapter<AppUserDTO> {
             this.binding = binding;
         }
 
-        @Override
         public void bind(AppUserDTO user) {
             binding.setUser(user);
             binding.executePendingBindings();
