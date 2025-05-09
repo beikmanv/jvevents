@@ -65,6 +65,6 @@ public interface ApiService {
     // ----------------- AUTH ----------------------
 
     @POST("auth/firebase/verify-token")
-    Call<Map<String, String>> loginWithGoogle(@Body Map<String, String> tokenMap);
+    Call<Map<String, String>> loginWithGoogle(@Query("idToken") String idToken);
 
 }

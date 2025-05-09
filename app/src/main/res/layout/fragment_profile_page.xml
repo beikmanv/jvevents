@@ -6,24 +6,39 @@
     android:layout_height="match_parent"
     tools:context=".ui.fragments.profilepage.ProfilePageFragment">
 
+    <!-- Status / User Info Text -->
     <TextView
         android:id="@+id/statusText"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:text="@string/hello_profile_fragment"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Not signed in"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp" />
 
+    <!-- Sign In Button -->
     <Button
-        android:id="@+id/signOutButton"
-        android:layout_width="wrap_content"
+        android:id="@+id/signInButton"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Sign Out"
-        android:layout_marginTop="16dp"
+        android:text="Sign In with Google"
         app:layout_constraintTop_toBottomOf="@id/statusText"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
 
+    <!-- Sign Out Button -->
+    <Button
+        android:id="@+id/signOutButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Sign Out"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/statusText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

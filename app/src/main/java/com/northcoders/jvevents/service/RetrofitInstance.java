@@ -14,17 +14,15 @@ public class RetrofitInstance {
     private static final String BASE_URL = "http://10.0.2.2:8085/api/v1/";
     private static Retrofit retrofitInstance;
 
-    // Singleton Retrofit instance
     private static Retrofit getRetrofitInstance() {
         if (retrofitInstance == null) {
             synchronized (RetrofitInstance.class) {
                 if (retrofitInstance == null) {
-                    HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-                    interceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+                    HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+                    logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
                     OkHttpClient client = new OkHttpClient.Builder()
-                            .addInterceptor(interceptor)
-                            .cookieJar(new SessionCookieJar())
+                            .addInterceptor(logging)
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
                             .build();
@@ -40,29 +38,27 @@ public class RetrofitInstance {
         return retrofitInstance;
     }
 
-    // Public method to get API Service
     public static ApiService getApiService() {
         return getRetrofitInstance().create(ApiService.class);
     }
 
     public static ApiService getApiServiceWithAuth(String idToken) {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new FirebaseAuthInterceptor(idToken))
-                .addInterceptor(loggingInterceptor)
-                .cookieJar(new SessionCookieJar())
+                .addInterceptor(logging)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .build();
 
-        Retrofit retrofit = new Retrofit.Builder()
+        return new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        return retrofit.create(ApiService.class);
+                .build()
+                .create(ApiService.class);
     }
 }
+
