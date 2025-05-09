@@ -2,6 +2,10 @@ package com.northcoders.jvevents.repository;
 
 import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.northcoders.jvevents.service.ApiService;
 import com.northcoders.jvevents.service.RetrofitInstance;
 import java.util.Map;
@@ -12,13 +16,44 @@ import retrofit2.Response;
 public class UserRepository {
 
     private static final String TAG = "UserRepository";
-    private final MutableLiveData<Boolean> backendAuthStatus = new MutableLiveData<>();
+    private final MutableLiveData<FirebaseUser> userLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> authStatus = new MutableLiveData<>();
+
+    /**
+     * Initiates Google Sign-In and retrieves a verified Firebase ID Token.
+     */
+    public void signInWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        if (user != null) {
+                            user.getIdToken(true).addOnCompleteListener(idTokenTask -> {
+                                if (idTokenTask.isSuccessful() && idTokenTask.getResult() != null) {
+                                    String firebaseIdToken = idTokenTask.getResult().getToken();
+                                    if (firebaseIdToken != null) {
+                                        userLiveData.setValue(user);
+                                        sendIdTokenToBackend(firebaseIdToken);
+                                        authStatus.setValue(true);
+                                    }
+                                } else {
+                                    Log.e(TAG, "❌ Failed to get Firebase ID Token", idTokenTask.getException());
+                                    authStatus.setValue(false);
+                                }
+                            });
+                        }
+                    } else {
+                        Log.e(TAG, "❌ Firebase Authentication failed", task.getException());
+                        authStatus.setValue(false);
+                    }
+                });
+    }
 
     /**
      * Sends the verified Firebase ID Token to the backend for further verification.
-     * This method uses the verified Firebase ID Token obtained from Firebase SDK.
      */
-    public void sendIdTokenToBackend(String firebaseIdToken) {
+    private void sendIdTokenToBackend(String firebaseIdToken) {
         ApiService apiService = RetrofitInstance.getApiServiceWithAuth(firebaseIdToken);
 
         apiService.loginWithGoogle(firebaseIdToken).enqueue(new Callback<Map<String, String>>() {
@@ -26,17 +61,14 @@ public class UserRepository {
             public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Log.d(TAG, "✅ Backend verification successful: " + response.body());
-                    backendAuthStatus.setValue(true);
                 } else {
                     handleBackendError(response);
-                    backendAuthStatus.setValue(false);
                 }
             }
 
             @Override
             public void onFailure(Call<Map<String, String>> call, Throwable t) {
                 Log.e(TAG, "❌ Network error during backend verification", t);
-                backendAuthStatus.setValue(false);
             }
         });
     }
@@ -50,7 +82,23 @@ public class UserRepository {
         }
     }
 
-    public MutableLiveData<Boolean> getBackendAuthStatus() {
-        return backendAuthStatus;
+    /**
+     * Logs out the user.
+     */
+    public void signOut() {
+        FirebaseAuth.getInstance().signOut();
+        userLiveData.setValue(null);
+        authStatus.setValue(false);
+    }
+
+    /**
+     * Exposes user data and authentication status to the ViewModel.
+     */
+    public MutableLiveData<FirebaseUser> getUserLiveData() {
+        return userLiveData;
+    }
+
+    public MutableLiveData<Boolean> getAuthStatus() {
+        return authStatus;
     }
 }
