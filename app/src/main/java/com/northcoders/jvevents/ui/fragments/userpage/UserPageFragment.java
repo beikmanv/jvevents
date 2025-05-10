@@ -54,7 +54,7 @@ public class UserPageFragment extends Fragment {
         // Observe Authentication Status
         viewModel.getAuthStatus().observe(getViewLifecycleOwner(), isAuthenticated -> {
             if (!isAuthenticated) {
-                Toast.makeText(getContext(), "Authentication failed or logged out.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "You are logged out.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -76,8 +76,14 @@ public class UserPageFragment extends Fragment {
     }
 
     private void initiateSignIn() {
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, 9001);
+        // Clear the cached Google Account and force Account Picker
+        googleSignInClient.signOut().addOnCompleteListener(task -> {
+            googleSignInClient.revokeAccess().addOnCompleteListener(revokeTask -> {
+                // Now always show Google Account Picker
+                Intent signInIntent = googleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent, 9001);
+            });
+        });
     }
 
     @Override

@@ -20,6 +20,22 @@ public class UserRepository {
     private final MutableLiveData<Boolean> authStatus = new MutableLiveData<>();
 
     /**
+     * Constructor - Initializes user state with the currently signed-in Firebase user.
+     */
+    public UserRepository() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            userLiveData.setValue(currentUser);
+            authStatus.setValue(true);
+            Log.d(TAG, "✅ User already signed in: " + currentUser.getDisplayName());
+        } else {
+            userLiveData.setValue(null);
+            authStatus.setValue(false);
+            Log.d(TAG, "❌ No user signed in.");
+        }
+    }
+
+    /**
      * Initiates Google Sign-In and retrieves a verified Firebase ID Token.
      */
     public void signInWithGoogle(String idToken) {
@@ -89,6 +105,7 @@ public class UserRepository {
         FirebaseAuth.getInstance().signOut();
         userLiveData.setValue(null);
         authStatus.setValue(false);
+        Log.d(TAG, "✅ User signed out.");
     }
 
     /**
