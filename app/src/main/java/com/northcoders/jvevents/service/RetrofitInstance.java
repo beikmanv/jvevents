@@ -1,8 +1,8 @@
 package com.northcoders.jvevents.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.northcoders.jvevents.interceptor.FirebaseAuthInterceptor;
-import com.northcoders.jvevents.util.SessionCookieJar;
-
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -13,25 +13,15 @@ public class RetrofitInstance {
 
     private static final String BASE_URL = "http://10.0.2.2:8085/api/v1/";
     private static Retrofit retrofitInstance;
+    private static final Gson gson = new GsonBuilder()
+            .setLenient() // Allows parsing of malformed JSON (temporary for debugging)
+            .create();
 
     private static Retrofit getRetrofitInstance() {
         if (retrofitInstance == null) {
             synchronized (RetrofitInstance.class) {
                 if (retrofitInstance == null) {
-                    HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-                    logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-                    OkHttpClient client = new OkHttpClient.Builder()
-                            .addInterceptor(logging)
-                            .connectTimeout(30, TimeUnit.SECONDS)
-                            .readTimeout(30, TimeUnit.SECONDS)
-                            .build();
-
-                    retrofitInstance = new Retrofit.Builder()
-                            .baseUrl(BASE_URL)
-                            .client(client)
-                            .addConverterFactory(GsonConverterFactory.create())
-                            .build();
+                    retrofitInstance = createRetrofit(null);
                 }
             }
         }
@@ -43,22 +33,28 @@ public class RetrofitInstance {
     }
 
     public static ApiService getApiServiceWithAuth(String idToken) {
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+        return createRetrofit(idToken).create(ApiService.class);
+    }
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new FirebaseAuthInterceptor(idToken))
+    private static Retrofit createRetrofit(String idToken) {
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.HEADERS); // Logs request and response bodies
+
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .addInterceptor(logging)
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .build();
+                .readTimeout(30, TimeUnit.SECONDS);
+
+        if (idToken != null) {
+            clientBuilder.addInterceptor(new FirebaseAuthInterceptor(idToken));
+        }
+
+        OkHttpClient client = clientBuilder.build();
 
         return new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(ApiService.class);
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
     }
 }
-

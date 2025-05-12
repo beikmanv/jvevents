@@ -6,6 +6,7 @@ import com.northcoders.jvevents.model.EventDTO;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.*;
 
@@ -36,8 +37,8 @@ public interface ApiService {
 
     // ----------------- USERS ---------------------
 
-    @GET("users")
-    Call<List<AppUserDTO>> getAllUsers();
+    @GET("/api/v1/users")
+    Call<List<AppUserDTO>> getAllUsers(@Header("Authorization") String authToken);
 
     @GET("users/{userId}")
     Call<AppUserDTO> getUserById(@Path("userId") long userId);
