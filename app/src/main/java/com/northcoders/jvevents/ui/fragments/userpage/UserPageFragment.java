@@ -67,6 +67,8 @@ public class UserPageFragment extends Fragment {
         binding.recyclerViewUsers.setLayoutManager(new LinearLayoutManager(requireContext()));
         userAdapter = new UserAdapter(new ArrayList<>(), user -> fetchUserEvents(user.getId()));
         binding.recyclerViewUsers.setAdapter(userAdapter);
+        binding.searchViewUsers.setQueryHint("search and click on a user");
+        binding.searchViewUsers.setIconifiedByDefault(false);
 
         // Search
         binding.searchViewUsers.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
