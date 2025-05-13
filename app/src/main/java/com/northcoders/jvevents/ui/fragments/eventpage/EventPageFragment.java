@@ -10,6 +10,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -46,8 +50,20 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
         return binding.getRoot();
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        View nav = requireActivity().findViewById(R.id.bottomnavbar);
+        if (nav != null) {
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) nav.getLayoutParams();
+            params.setBehavior(new com.google.android.material.behavior.HideBottomViewOnScrollBehavior<>());
+            nav.setLayoutParams(params);
+        }
+    }
+
     private void setupRecyclerView() {
-        eventAdapter = new EventAdapter(new ArrayList<>(), false, this);
+        eventAdapter = new EventAdapter(new ArrayList<>(), false, this, R.layout.event_item_layout);
         binding.eventListRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.eventListRecyclerView.setAdapter(eventAdapter);
     }

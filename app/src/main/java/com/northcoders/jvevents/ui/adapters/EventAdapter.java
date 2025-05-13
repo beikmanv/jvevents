@@ -5,7 +5,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.northcoders.jvevents.BR;
 import com.northcoders.jvevents.R;
 import com.northcoders.jvevents.databinding.EventItemLayoutBinding;
 import com.northcoders.jvevents.model.EventDTO;
@@ -18,19 +21,21 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final List<EventDTO> eventList;
     private boolean isStaff;
     private final OnEventActionListener actionListener;
+    private final int layoutId;
 
-    public EventAdapter(List<EventDTO> eventList, boolean isStaff, OnEventActionListener actionListener) {
+    public EventAdapter(List<EventDTO> eventList, boolean isStaff, OnEventActionListener actionListener, int layoutId) {
         this.eventList = eventList != null ? eventList : new ArrayList<>();
         this.isStaff = isStaff;
         this.actionListener = actionListener;
+        this.layoutId = layoutId;
     }
 
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        EventItemLayoutBinding binding = DataBindingUtil.inflate(
+        ViewDataBinding binding = DataBindingUtil.inflate(
                 LayoutInflater.from(parent.getContext()),
-                R.layout.event_item_layout,
+                layoutId,
                 parent,
                 false
         );
@@ -65,15 +70,15 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     class EventViewHolder extends RecyclerView.ViewHolder {
-        private final EventItemLayoutBinding binding;
+        private final ViewDataBinding binding;
 
-        public EventViewHolder(EventItemLayoutBinding binding) {
+        public EventViewHolder(ViewDataBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
 
         public void bind(EventDTO event) {
-            binding.setEvent(event);
+            binding.setVariable(BR.event, event);
             binding.executePendingBindings();
 
             binding.getRoot().setOnClickListener(v -> {
@@ -82,22 +87,29 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 }
             });
 
-            binding.btnSeeAttendees.setOnClickListener(v -> {
-                if (actionListener != null) {
-                    actionListener.onSeeAttendeesClick(event);
-                }
-            });
+            // Only handle buttons if using full layout
+            if (binding instanceof EventItemLayoutBinding) {
+                EventItemLayoutBinding fullBinding = (EventItemLayoutBinding) binding;
 
-            if (isStaff) {
-                binding.btnEditEvent.setVisibility(View.VISIBLE);
-                binding.btnEditEvent.setOnClickListener(v -> {
+                fullBinding.btnSeeAttendees.setOnClickListener(v -> {
                     if (actionListener != null) {
-                        actionListener.onEditEventClick(event);
+                        actionListener.onSeeAttendeesClick(event);
                     }
                 });
-            } else {
-                binding.btnEditEvent.setVisibility(View.GONE);
+
+                if (isStaff) {
+                    fullBinding.btnEditEvent.setVisibility(View.VISIBLE);
+                    fullBinding.btnEditEvent.setOnClickListener(v -> {
+                        if (actionListener != null) {
+                            actionListener.onEditEventClick(event);
+                        }
+                    });
+                } else {
+                    fullBinding.btnEditEvent.setVisibility(View.GONE);
+                }
             }
         }
     }
+
 }
+

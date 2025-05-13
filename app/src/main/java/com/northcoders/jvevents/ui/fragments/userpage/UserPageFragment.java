@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -82,19 +83,21 @@ public class UserPageFragment extends Fragment {
             }
         });
 
-        // Events
         binding.recyclerViewEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
-        eventAdapter = new EventAdapter(new ArrayList<>(), true, new EventAdapter.OnEventActionListener() {
-            @Override
-            public void onItemClick(EventDTO event) {
-                Toast.makeText(requireContext(), "Clicked: " + event.getTitle(), Toast.LENGTH_SHORT).show();
-            }
+        eventAdapter = new EventAdapter(
+                new ArrayList<>(),
+                true,
+                new EventAdapter.OnEventActionListener() {
+                    @Override
+                    public void onItemClick(EventDTO event) {
+                        Toast.makeText(requireContext(), "Clicked: " + event.getTitle(), Toast.LENGTH_SHORT).show();
+                    }
 
-            @Override
-            public void onSeeAttendeesClick(EventDTO event) {}
-            @Override
-            public void onEditEventClick(EventDTO event) {}
-        });
+                    public void onSeeAttendeesClick(EventDTO event) {}
+                    public void onEditEventClick(EventDTO event) {}
+                },
+                R.layout.event_item_layout_simple // Use simplified layout
+        );
         binding.recyclerViewEvents.setAdapter(eventAdapter);
     }
 
@@ -139,7 +142,16 @@ public class UserPageFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Set Click Listeners for Sign In and Sign Out
+        View nav = requireActivity().findViewById(R.id.bottomnavbar);
+        if (nav != null) {
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) nav.getLayoutParams();
+            if (params.getBehavior() instanceof com.google.android.material.behavior.HideBottomViewOnScrollBehavior) {
+                params.setBehavior(null); // ⛔ Remove scroll behavior
+                nav.setLayoutParams(params);
+            }
+            nav.setVisibility(View.VISIBLE);
+        }
+
         binding.signInButton.setOnClickListener(v -> initiateSignIn());
         binding.signOutButton.setOnClickListener(v -> {
             viewModel.signOut();
@@ -192,4 +204,12 @@ public class UserPageFragment extends Fragment {
             }
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        View nav = requireActivity().findViewById(R.id.bottomnavbar);
+        if (nav != null) nav.setVisibility(View.VISIBLE);
+    }
+
 }

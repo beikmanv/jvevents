@@ -58,4 +58,5 @@ public class EventDTO {
     public List<AppUserDTO> getUsers() { return users; }
 
     public void setUsers(List<AppUserDTO> users) { this.users = users; }
+
 }
