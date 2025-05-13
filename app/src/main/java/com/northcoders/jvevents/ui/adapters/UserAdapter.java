@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
-    private final List<AppUserDTO> userList;
+    private List<AppUserDTO> originalList;
+    private List<AppUserDTO> filteredList;
     private final OnUserClickListener listener;
 
     public interface OnUserClickListener {
@@ -18,7 +19,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     }
 
     public UserAdapter(List<AppUserDTO> userList, OnUserClickListener listener) {
-        this.userList = userList != null ? userList : new ArrayList<>();
+        this.originalList = new ArrayList<>(userList);
+        this.filteredList = new ArrayList<>(userList);
         this.listener = listener;
     }
 
@@ -32,17 +34,31 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
-        holder.bind(userList.get(position));
+        holder.bind(filteredList.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return userList.size();
+        return filteredList.size();
     }
 
     public void updateUsers(List<AppUserDTO> newUsers) {
-        userList.clear();
-        userList.addAll(newUsers);
+        this.originalList = new ArrayList<>(newUsers);
+        this.filteredList = new ArrayList<>(newUsers);
+        notifyDataSetChanged();
+    }
+
+    public void filter(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            filteredList = new ArrayList<>(originalList);
+        } else {
+            filteredList = new ArrayList<>();
+            for (AppUserDTO user : originalList) {
+                if (user.getUsername().toLowerCase().contains(query.toLowerCase())) {
+                    filteredList.add(user);
+                }
+            }
+        }
         notifyDataSetChanged();
     }
 
@@ -57,9 +73,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         public void bind(AppUserDTO user) {
             binding.setUser(user);
             binding.executePendingBindings();
-            binding.getRoot().setOnClickListener(v -> {
-                listener.onUserClicked(user);
-            });
+            binding.getRoot().setOnClickListener(v -> listener.onUserClicked(user));
         }
     }
 }

@@ -7,6 +7,7 @@ import android.view.*;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -61,28 +62,38 @@ public class UserPageFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
-        // Setup Users RecyclerView
+        // Users
         binding.recyclerViewUsers.setLayoutManager(new LinearLayoutManager(requireContext()));
         userAdapter = new UserAdapter(new ArrayList<>(), user -> fetchUserEvents(user.getId()));
         binding.recyclerViewUsers.setAdapter(userAdapter);
 
-        // Setup Events RecyclerView
+        // Search
+        binding.searchViewUsers.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                userAdapter.filter(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                userAdapter.filter(newText);
+                return true;
+            }
+        });
+
+        // Events
         binding.recyclerViewEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
         eventAdapter = new EventAdapter(new ArrayList<>(), true, new EventAdapter.OnEventActionListener() {
             @Override
             public void onItemClick(EventDTO event) {
-                Toast.makeText(requireContext(), "Clicked on event: " + event.getTitle(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Clicked: " + event.getTitle(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public void onSeeAttendeesClick(EventDTO event) {
-                Toast.makeText(requireContext(), "See attendees for: " + event.getTitle(), Toast.LENGTH_SHORT).show();
-            }
-
+            public void onSeeAttendeesClick(EventDTO event) {}
             @Override
-            public void onEditEventClick(EventDTO event) {
-                Toast.makeText(requireContext(), "Edit event: " + event.getTitle(), Toast.LENGTH_SHORT).show();
-            }
+            public void onEditEventClick(EventDTO event) {}
         });
         binding.recyclerViewEvents.setAdapter(eventAdapter);
     }
@@ -135,8 +146,25 @@ public class UserPageFragment extends Fragment {
             binding.statusText.setText("Not signed in");
         });
 
+        viewModel.getUserLiveData().observe(getViewLifecycleOwner(), user -> {
+            Log.d(TAG, "🔄 FirebaseUser changed: " + (user != null ? user.getEmail() : "null"));
+            updateUI(user);
+        });
+
         // Automatically fetch users at start
         loadUsers();
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
+            binding.statusText.setText("Hello, " + user.getDisplayName());
+            binding.signOutButton.setVisibility(View.VISIBLE);
+            binding.signInButton.setVisibility(View.GONE);
+        } else {
+            binding.statusText.setText("Not signed in");
+            binding.signOutButton.setVisibility(View.GONE);
+            binding.signInButton.setVisibility(View.VISIBLE);
+        }
     }
 
     private void initiateSignIn() {

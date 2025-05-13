@@ -6,7 +6,7 @@
     android:padding="16dp"
     android:background="#F7F1FF">
 
-    <!-- Status / User Info Text -->
+    <!-- Status Text -->
     <TextView
         android:id="@+id/statusText"
         android:layout_width="0dp"
@@ -19,53 +19,66 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Sign In Button -->
-    <Button
-        android:id="@+id/signInButton"
+    <!-- Auth Buttons Container -->
+    <LinearLayout
+        android:id="@+id/authButtonContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Sign In with Google"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
+        android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@id/statusText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp">
 
-    <!-- Sign Out Button (Hidden by default) -->
-    <Button
-        android:id="@+id/signOutButton"
+        <Button
+            android:id="@+id/signInButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign In with Google"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/signOutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign Out"
+            android:visibility="gone"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Search View -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchViewUsers"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Sign Out"
-        android:visibility="gone"
-        android:textColor="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@id/statusText"
+        android:queryHint="Search users..."
+        android:iconifiedByDefault="false"
+        app:layout_constraintTop_toBottomOf="@id/authButtonContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="8dp" />
 
-    <!-- User List RecyclerView -->
+    <!-- Users RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewUsers"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/signInButton"
+        app:layout_constraintTop_toBottomOf="@id/searchViewUsers"
         app:layout_constraintBottom_toTopOf="@id/recyclerViewEvents"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintHeight_percent="0.25" />
 
     <!-- Events RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewEvents"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@id/recyclerViewUsers"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.75" />
 </androidx.constraintlayout.widget.ConstraintLayout>
