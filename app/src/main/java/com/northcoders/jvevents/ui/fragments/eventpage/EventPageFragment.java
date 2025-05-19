@@ -18,6 +18,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.northcoders.jvevents.R;
@@ -27,6 +28,7 @@ import com.northcoders.jvevents.model.AppUserDTO;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.service.ApiService;
 import com.northcoders.jvevents.service.RetrofitInstance;
+import com.northcoders.jvevents.ui.adapters.AttendeeAdapter;
 import com.northcoders.jvevents.ui.adapters.EventAdapter;
 
 import java.text.SimpleDateFormat;
@@ -214,21 +216,15 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
     }
 
     private void showAttendeesDialog(List<AppUserDTO> attendees) {
-        if (attendees.isEmpty()) {
-            Toast.makeText(requireContext(), "No attendees yet.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String[] names = new String[attendees.size()];
-        for (int i = 0; i < attendees.size(); i++) {
-            AppUserDTO user = attendees.get(i);
-            names[i] = user.getUsername() + " (" + user.getEmail() + ")";
-        }
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View view = inflater.inflate(R.layout.dialog_attendees, null);
+        RecyclerView recyclerView = view.findViewById(R.id.attendeesRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.setAdapter(new AttendeeAdapter(attendees));
 
         new AlertDialog.Builder(requireContext())
-                .setTitle("Attendees")
-                .setItems(names, null)
-                .setPositiveButton("OK", null)
+                .setView(view)
+                .setPositiveButton("Close", null)
                 .show();
     }
 }
