@@ -125,7 +125,7 @@ public class UserRepository {
             if (task.isSuccessful() && task.getResult() != null) {
                 String token = task.getResult().getToken();
                 ApiService apiService = RetrofitInstance.getApiServiceWithAuth(token);
-                apiService.getAllUsers("Bearer " + token).enqueue(new Callback<List<AppUserDTO>>() {
+                apiService.getAllUsers().enqueue(new Callback<List<AppUserDTO>>() {
                     @Override
                     public void onResponse(Call<List<AppUserDTO>> call, Response<List<AppUserDTO>> response) {
                         if (response.isSuccessful() && response.body() != null) {

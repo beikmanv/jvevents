@@ -38,7 +38,7 @@ public interface ApiService {
     // ----------------- USERS ---------------------
 
     @GET("/api/v1/users")
-    Call<List<AppUserDTO>> getAllUsers(@Header("Authorization") String authToken);
+    Call<List<AppUserDTO>> getAllUsers();
 
     @GET("users/{userId}")
     Call<AppUserDTO> getUserById(@Path("userId") long userId);

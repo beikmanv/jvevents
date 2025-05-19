@@ -104,7 +104,7 @@ public class UserPageFragment extends Fragment {
     }
 
     private void loadUsers() {
-        RetrofitInstance.getApiService().getAllUsers("").enqueue(new Callback<List<AppUserDTO>>() {
+        RetrofitInstance.getApiService().getAllUsers().enqueue(new Callback<List<AppUserDTO>>() {
             @Override
             public void onResponse(Call<List<AppUserDTO>> call, Response<List<AppUserDTO>> response) {
                 if (response.isSuccessful() && response.body() != null) {
