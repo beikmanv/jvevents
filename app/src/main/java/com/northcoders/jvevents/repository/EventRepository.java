@@ -169,4 +169,33 @@ public class EventRepository {
                     Log.e("EventRepository", "Failed to get ID token: " + e.getMessage());
                 });
     }
+
+    public LiveData<Boolean> deleteEvent(Long eventId) {
+        MutableLiveData<Boolean> result = new MutableLiveData<>();
+
+        getAuthenticatedApiService(api -> {
+            api.deleteEvent(eventId).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        result.setValue(true);
+                        // Optionally refresh event list here
+                        getAllEventsLiveData();  // refresh list after deletion
+                    } else {
+                        Log.e("EventRepository", "Failed to delete event: " + response.code());
+                        result.setValue(false);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("EventRepository", "Delete error: " + t.getMessage());
+                    result.setValue(false);
+                }
+            });
+        });
+
+        return result;
+    }
+
 }

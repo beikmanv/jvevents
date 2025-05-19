@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class EventPageFragment extends Fragment implements EventAdapter.OnEventActionListener {
+public class EventPageFragment extends Fragment implements EventAdapter.OnEventActionListenerExtended {
 
     private FragmentEventPageBinding binding; // Connects the layout (UI) to this code.
     private EventPageViewModel viewModel; // Manages all the data and logic for this fragment.
@@ -174,6 +174,18 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 .setPositiveButton("Save", (dialog, which) -> {
                     EventDTO updatedEvent = dialogBinding.getEvent(); // Get the updated event
                     viewModel.updateEvent(updatedEvent);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    @Override
+    public void onDeleteEventClick(EventDTO event) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Delete Event")
+                .setMessage("Are you sure you want to delete \"" + event.getTitle() + "\"?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    viewModel.deleteEvent(event);
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

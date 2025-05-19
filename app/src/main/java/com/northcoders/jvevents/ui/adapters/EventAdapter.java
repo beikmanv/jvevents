@@ -69,6 +69,10 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         void onEditEventClick(EventDTO event);
     }
 
+    public interface OnEventActionListenerExtended extends OnEventActionListener {
+        void onDeleteEventClick(EventDTO event);
+    }
+
     class EventViewHolder extends RecyclerView.ViewHolder {
         private final ViewDataBinding binding;
 
@@ -87,7 +91,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 }
             });
 
-            // Only handle buttons if using full layout
             if (binding instanceof EventItemLayoutBinding) {
                 EventItemLayoutBinding fullBinding = (EventItemLayoutBinding) binding;
 
@@ -99,15 +102,26 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
                 if (isStaff) {
                     fullBinding.btnEditEvent.setVisibility(View.VISIBLE);
+                    fullBinding.btnDeleteEvent.setVisibility(View.VISIBLE);
+
                     fullBinding.btnEditEvent.setOnClickListener(v -> {
                         if (actionListener != null) {
                             actionListener.onEditEventClick(event);
                         }
                     });
+
+                    fullBinding.btnDeleteEvent.setOnClickListener(v -> {
+                        if (actionListener instanceof EventAdapter.OnEventActionListenerExtended) {
+                            ((OnEventActionListenerExtended) actionListener).onDeleteEventClick(event);
+                        }
+                    });
+
                 } else {
                     fullBinding.btnEditEvent.setVisibility(View.GONE);
+                    fullBinding.btnDeleteEvent.setVisibility(View.GONE);
                 }
             }
+
         }
     }
 

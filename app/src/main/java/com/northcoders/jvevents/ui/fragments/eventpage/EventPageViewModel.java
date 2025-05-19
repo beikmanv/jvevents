@@ -102,6 +102,17 @@ public class EventPageViewModel extends AndroidViewModel {
         selectedEvent.setValue(event);
         launchCalendarEvent.setValue(true);
     }
+
+    public void deleteEvent(EventDTO event) {
+        repository.deleteEvent(event.getId()).observeForever(success -> {
+            if (Boolean.TRUE.equals(success)) {
+                fetchAllEvents(); // Keep this here so ViewModel triggers UI update
+                toastMessage.setValue("Event deleted successfully.");
+            } else {
+                toastMessage.setValue("Failed to delete event.");
+            }
+        });
+    }
 }
 
 
