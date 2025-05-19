@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GetTokenResult;
+import com.northcoders.jvevents.model.AppUserDTO;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.service.ApiService;
 import com.northcoders.jvevents.service.RetrofitInstance;
@@ -198,4 +199,25 @@ public class EventRepository {
         return result;
     }
 
+    public void getAttendeesForEvent(long eventId, Consumer<List<AppUserDTO>> callback) {
+        getAuthenticatedApiService(api -> {
+            api.getUsersForEvent(eventId).enqueue(new Callback<List<AppUserDTO>>() {
+                @Override
+                public void onResponse(Call<List<AppUserDTO>> call, Response<List<AppUserDTO>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        callback.accept(response.body());
+                    } else {
+                        callback.accept(null);
+                        Log.e("EventRepository", "Failed to fetch attendees: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<AppUserDTO>> call, Throwable t) {
+                    callback.accept(null);
+                    Log.e("EventRepository", "Error fetching attendees: " + t.getMessage());
+                }
+            });
+        });
+    }
 }

@@ -19,16 +19,25 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.northcoders.jvevents.R;
 import com.northcoders.jvevents.databinding.DialogEditEventBinding;
 import com.northcoders.jvevents.databinding.FragmentEventPageBinding;
+import com.northcoders.jvevents.model.AppUserDTO;
 import com.northcoders.jvevents.model.EventDTO;
+import com.northcoders.jvevents.service.ApiService;
+import com.northcoders.jvevents.service.RetrofitInstance;
 import com.northcoders.jvevents.ui.adapters.EventAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class EventPageFragment extends Fragment implements EventAdapter.OnEventActionListenerExtended {
 
@@ -92,12 +101,25 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                     viewModel.resetLaunchCalendarEvent();
                 }
             }
+
         });
 
         viewModel.getShowCalendarThankYou().observe(getViewLifecycleOwner(), shouldShow -> {
             if (Boolean.TRUE.equals(shouldShow)) {
                 showCalendarThankYouDialog();
                 viewModel.resetShowCalendarThankYou();
+            }
+        });
+
+        viewModel.getAttendeesLiveData().observe(getViewLifecycleOwner(), attendees -> {
+            // Just a LiveData update, real display logic is triggered by showAttendeesDialog observer
+        });
+
+        viewModel.getShowAttendeesDialog().observe(getViewLifecycleOwner(), show -> {
+            if (Boolean.TRUE.equals(show)) {
+                List<AppUserDTO> attendees = viewModel.getAttendeesLiveData().getValue();
+                if (attendees != null) showAttendeesDialog(attendees);
+                viewModel.resetShowAttendeesDialog();
             }
         });
     }
@@ -109,7 +131,7 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
 
     @Override
     public void onSeeAttendeesClick(EventDTO event) {
-        Toast.makeText(requireContext(), "See Attendees clicked for " + event.getTitle(), Toast.LENGTH_SHORT).show();
+        viewModel.fetchAttendeesForEvent(event);
     }
 
     @Override
@@ -188,6 +210,25 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                     viewModel.deleteEvent(event);
                 })
                 .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showAttendeesDialog(List<AppUserDTO> attendees) {
+        if (attendees.isEmpty()) {
+            Toast.makeText(requireContext(), "No attendees yet.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] names = new String[attendees.size()];
+        for (int i = 0; i < attendees.size(); i++) {
+            AppUserDTO user = attendees.get(i);
+            names[i] = user.getUsername() + " (" + user.getEmail() + ")";
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Attendees")
+                .setItems(names, null)
+                .setPositiveButton("OK", null)
                 .show();
     }
 }

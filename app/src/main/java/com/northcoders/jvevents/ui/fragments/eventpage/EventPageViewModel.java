@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.northcoders.jvevents.model.AppUserDTO;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.repository.EventRepository;
 import com.northcoders.jvevents.service.ApiService;
@@ -26,6 +27,8 @@ public class EventPageViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> launchCalendarEvent = new MutableLiveData<>();
     private final MutableLiveData<Boolean> showCalendarThankYou = new MutableLiveData<>();
     private final MutableLiveData<String> toastMessage = new MutableLiveData<>();
+    private final MutableLiveData<List<AppUserDTO>> attendeesLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> showAttendeesDialog = new MutableLiveData<>();
 
     public EventPageViewModel(@NonNull Application application) {
         super(application);
@@ -112,6 +115,29 @@ public class EventPageViewModel extends AndroidViewModel {
                 toastMessage.setValue("Failed to delete event.");
             }
         });
+    }
+
+    public LiveData<List<AppUserDTO>> getAttendeesLiveData() {
+        return attendeesLiveData;
+    }
+
+    public LiveData<Boolean> getShowAttendeesDialog() {
+        return showAttendeesDialog;
+    }
+
+    public void fetchAttendeesForEvent(EventDTO event) {
+        repository.getAttendeesForEvent(event.getId(), attendees -> {
+            if (attendees != null) {
+                attendeesLiveData.postValue(attendees);
+                showAttendeesDialog.postValue(true);
+            } else {
+                toastMessage.postValue("Failed to load attendees.");
+            }
+        });
+    }
+
+    public void resetShowAttendeesDialog() {
+        showAttendeesDialog.setValue(false);
     }
 }
 
