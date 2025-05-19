@@ -2,4 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="accessible_dark_purple">#512DA8</color> <!-- Deep Purple 700 -->
+    <color name="accessible_blue">#2962FF</color>         <!-- Blue A700 -->
+    <color name="accessible_gray">#333333</color>         <!-- High contrast gray -->
 </resources>

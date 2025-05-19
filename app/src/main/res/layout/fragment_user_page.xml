@@ -16,6 +16,8 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#2E2E2E"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -36,7 +38,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sign In with Google"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
 
         <Button
             android:id="@+id/signOutButton"
@@ -44,7 +48,9 @@
             android:layout_height="wrap_content"
             android:text="Sign Out"
             android:visibility="gone"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
     </LinearLayout>
 
     <!-- Search View -->

@@ -4,11 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
+import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -67,7 +69,10 @@ public class UserPageFragment extends Fragment {
         binding.recyclerViewUsers.setLayoutManager(new LinearLayoutManager(requireContext()));
         userAdapter = new UserAdapter(new ArrayList<>(), user -> fetchUserEvents(user.getId()));
         binding.recyclerViewUsers.setAdapter(userAdapter);
-        binding.searchViewUsers.setQueryHint("search and click on a user");
+        binding.searchViewUsers.setQueryHint("Click on a user for events he's attending");
+        AutoCompleteTextView searchText = binding.searchViewUsers.findViewById(androidx.appcompat.R.id.search_src_text);
+        int accessibleGray = ContextCompat.getColor(requireContext(), R.color.accessible_gray);
+        searchText.setHintTextColor(accessibleGray);
         binding.searchViewUsers.setIconifiedByDefault(false);
 
         // Search
