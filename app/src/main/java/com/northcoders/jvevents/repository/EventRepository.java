@@ -32,23 +32,30 @@ public class EventRepository {
         this.apiService = RetrofitInstance.getApiService();
     }
 
-    // ✅ Fetch All Events
+    // Used for observing from UI
     public LiveData<List<EventDTO>> getAllEventsLiveData() {
+        return allEventsLiveData;
+    }
+
+    // ✅ Fetch All Events
+    public LiveData<List<EventDTO>> getAllEventsLiveData(LoadCallback callback) {
         apiService.getAllEvents().enqueue(new Callback<List<EventDTO>>() {
             @Override
             public void onResponse(Call<List<EventDTO>> call, Response<List<EventDTO>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     allEventsLiveData.setValue(response.body());
+                    callback.onLoaded(); // ✅ success
                 } else {
-                    Log.e("EventRepository", "Failed to fetch events: " + response.code());
+                    callback.onError("Failed to load events: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<List<EventDTO>> call, Throwable t) {
-                Log.e("EventRepository", "Error fetching events: " + t.getMessage());
+                callback.onError("Network error: " + t.getMessage());
             }
         });
+
         return allEventsLiveData;
     }
 
@@ -219,5 +226,10 @@ public class EventRepository {
                 }
             });
         });
+    }
+
+    public interface LoadCallback {
+        void onLoaded();
+        void onError(String error);
     }
 }

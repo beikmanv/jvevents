@@ -1,20 +1,14 @@
 package com.northcoders.jvevents.ui.fragments.eventpage;
 
 import android.app.Application;
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.northcoders.jvevents.model.AppUserDTO;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.repository.EventRepository;
-import com.northcoders.jvevents.service.ApiService;
-import com.northcoders.jvevents.service.RetrofitInstance;
+
 
 import java.util.List;
 
@@ -29,14 +23,16 @@ public class EventPageViewModel extends AndroidViewModel {
     private final MutableLiveData<String> toastMessage = new MutableLiveData<>();
     private final MutableLiveData<List<AppUserDTO>> attendeesLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> showAttendeesDialog = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    public LiveData<Boolean> getIsLoading() { return isLoading; }
+
+    public LiveData<List<EventDTO>> getAllEvents() {
+        return repository.getAllEventsLiveData(); // the version WITHOUT callback
+    }
 
     public EventPageViewModel(@NonNull Application application) {
         super(application);
         this.repository = new EventRepository(application);
-    }
-
-    public LiveData<List<EventDTO>> getAllEvents() {
-        return repository.getAllEventsLiveData();
     }
 
     public LiveData<EventDTO> getSelectedEvent() {
@@ -67,7 +63,19 @@ public class EventPageViewModel extends AndroidViewModel {
     }
 
     public void fetchAllEvents() {
-        repository.getAllEventsLiveData();
+        isLoading.setValue(true);
+        repository.getAllEventsLiveData(new EventRepository.LoadCallback() {
+            @Override
+            public void onLoaded() {
+                isLoading.setValue(false);
+            }
+
+            @Override
+            public void onError(String error) {
+                isLoading.setValue(false);
+                toastMessage.setValue(error);
+            }
+        });
     }
 
     public void checkIfUserIsStaff() {

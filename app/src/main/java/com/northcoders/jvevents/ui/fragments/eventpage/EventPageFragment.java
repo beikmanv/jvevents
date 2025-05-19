@@ -124,6 +124,10 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 viewModel.resetShowAttendeesDialog();
             }
         });
+
+        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        });
     }
 
     @Override
