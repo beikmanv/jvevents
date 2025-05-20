@@ -10,12 +10,15 @@ import com.northcoders.jvevents.model.AppUserDTO;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.service.ApiService;
 import com.northcoders.jvevents.service.RetrofitInstance;
-
 import java.util.List;
 import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.google.android.gms.wallet.IsReadyToPayRequest;
+import com.google.android.gms.wallet.PaymentsClient;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class UserRepository {
 
@@ -183,5 +186,28 @@ public class UserRepository {
                 eventsLiveData.postValue(null);
             }
         });
+    }
+
+    public void checkGooglePayAvailability(PaymentsClient client, MutableLiveData<Boolean> resultLiveData) {
+        try {
+            JSONObject isReadyToPayJson = new JSONObject()
+                    .put("apiVersion", 2)
+                    .put("apiVersionMinor", 0)
+                    .put("allowedPaymentMethods", new JSONArray().put(
+                            new JSONObject()
+                                    .put("type", "CARD")
+                                    .put("parameters", new JSONObject()
+                                            .put("allowedAuthMethods", new JSONArray().put("PAN_ONLY").put("CRYPTOGRAM_3DS"))
+                                            .put("allowedCardNetworks", new JSONArray().put("VISA").put("MASTERCARD"))
+                                    )
+                    ));
+            IsReadyToPayRequest request = IsReadyToPayRequest.fromJson(isReadyToPayJson.toString());
+            client.isReadyToPay(request).addOnCompleteListener(task ->
+                    resultLiveData.setValue(task.isSuccessful() && Boolean.TRUE.equals(task.getResult()))
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "Google Pay check error", e);
+            resultLiveData.setValue(false);
+        }
     }
 }

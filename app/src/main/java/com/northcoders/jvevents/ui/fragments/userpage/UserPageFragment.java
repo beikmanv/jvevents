@@ -1,5 +1,6 @@
 package com.northcoders.jvevents.ui.fragments.userpage;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.northcoders.jvevents.R;
@@ -32,6 +34,10 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.google.android.gms.wallet.*;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class UserPageFragment extends Fragment {
 
@@ -42,6 +48,8 @@ public class UserPageFragment extends Fragment {
     private List<AppUserDTO> userList = new ArrayList<>();
     private UserAdapter userAdapter;
     private EventAdapter eventAdapter;
+    private PaymentsClient paymentsClient;
+    private static final int LOAD_PAYMENT_DATA_REQUEST_CODE = 991;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,6 +62,12 @@ public class UserPageFragment extends Fragment {
                 .build();
 
         googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
+
+        Wallet.WalletOptions walletOptions = new Wallet.WalletOptions.Builder()
+                .setEnvironment(WalletConstants.ENVIRONMENT_TEST) // change to PRODUCTION later
+                .build();
+
+        paymentsClient = Wallet.getPaymentsClient(requireContext(), walletOptions);
     }
 
     @Override
@@ -172,6 +186,34 @@ public class UserPageFragment extends Fragment {
 
         // Automatically fetch users at start
         loadUsers();
+
+        viewModel.checkGooglePayAvailability(paymentsClient);
+
+        viewModel.isGooglePayAvailable().observe(getViewLifecycleOwner(), isAvailable -> {
+            binding.googlePayButton.setVisibility(isAvailable ? View.VISIBLE : View.GONE);
+        });
+
+        viewModel.getPaymentMessage().observe(getViewLifecycleOwner(), msg -> {
+            if (msg != null) {
+                Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        binding.googlePayButton.setOnClickListener(v -> requestPayment());
+    }
+
+    public void handlePaymentSuccess(PaymentData paymentData) {
+        try {
+            JSONObject paymentMethodData = new JSONObject(paymentData.toJson())
+                    .getJSONObject("paymentMethodData");
+            String token = paymentMethodData
+                    .getJSONObject("tokenizationData")
+                    .getString("token");
+            // Use token to process payment server-side if needed
+            viewModel.setPaymentMessage("Thank you for your donation!");
+        } catch (Exception e) {
+            viewModel.setPaymentMessage("Payment processing failed.");
+        }
     }
 
     private void updateUI(FirebaseUser user) {
@@ -210,6 +252,45 @@ public class UserPageFragment extends Fragment {
                 Toast.makeText(getContext(), "Google sign-in failed.", Toast.LENGTH_SHORT).show();
             }
         }
+
+        if (requestCode == LOAD_PAYMENT_DATA_REQUEST_CODE) {
+            switch (resultCode) {
+                case Activity.RESULT_OK:
+                    PaymentData paymentData = PaymentData.getFromIntent(data);
+                    if (paymentData != null) {
+                        try {
+                            String rawTokenJson = new JSONObject(paymentData.toJson())
+                                    .getJSONObject("paymentMethodData")
+                                    .getJSONObject("tokenizationData")
+                                    .getString("token");
+                            String minifiedJson = rawTokenJson.replaceAll("\\s+", " "); // collapse all whitespace
+
+                            Log.d("GooglePay", "🔍 Raw token JSON: " + minifiedJson);
+
+                            JSONObject tokenObject = new JSONObject(rawTokenJson);
+                            String tokenId = tokenObject.getString("id");
+
+                            Log.d("GooglePay", "✅ Extracted Stripe token ID: " + tokenId);
+
+                            viewModel.sendGooglePayToken(tokenId);
+                            viewModel.handlePaymentSuccess(paymentData);
+
+                        } catch (Exception e) {
+                            Log.e("GooglePay", "❌ Token extraction failed", e);
+                            viewModel.setPaymentMessage("Payment error occurred.");
+                        }
+                    }
+                    break;
+                case Activity.RESULT_CANCELED:
+                    Log.d("GooglePay", "Canceled");
+                    break;
+                case AutoResolveHelper.RESULT_ERROR:
+                    Status status = AutoResolveHelper.getStatusFromIntent(data);
+                    Log.e("GooglePay", "Error: " + status);
+                    break;
+            }
+        }
+
     }
 
     @Override
@@ -219,4 +300,53 @@ public class UserPageFragment extends Fragment {
         if (nav != null) nav.setVisibility(View.VISIBLE);
     }
 
+    private void requestPayment() {
+        try {
+            JSONObject tokenizationSpec = new JSONObject()
+                    .put("type", "PAYMENT_GATEWAY")
+                    .put("parameters", new JSONObject()
+                            .put("gateway", "stripe")
+                            .put("stripe:version", "2022-11-15")
+                            .put("stripe:publishableKey",
+                                    "pk_test_51RQZtk4Tt7E1qBkG66karB0QHoFYLLyMiuDr2Cjw2YZoGSqfp76n0b7pvStTpXEbixKatZWqW6qZRqOpHG4iBgYH00BbgP3UMQ")
+                    );
+
+            JSONObject cardPaymentMethod = new JSONObject()
+                    .put("type", "CARD")
+                    .put("tokenizationSpecification", tokenizationSpec)
+                    .put("parameters", new JSONObject()
+                            .put("allowedCardNetworks", new JSONArray().put("VISA").put("MASTERCARD"))
+                            .put("allowedAuthMethods", new JSONArray().put("PAN_ONLY").put("CRYPTOGRAM_3DS"))
+                            .put("billingAddressRequired", true)
+                            .put("billingAddressParameters", new JSONObject().put("format", "FULL")));
+
+            JSONObject transactionInfo = new JSONObject()
+                    .put("totalPrice", "5.00")
+                    .put("totalPriceStatus", "FINAL")
+                    .put("currencyCode", "USD");
+
+            JSONObject merchantInfo = new JSONObject()
+                    .put("merchantName", "Your App Name")
+                    .put("merchantOrigin", "https://bb7b-2a09-bac1-28c0-168-00-178-52.ngrok-free.app");
+
+            JSONObject paymentDataRequestJson = new JSONObject()
+                    .put("apiVersion", 2)
+                    .put("apiVersionMinor", 0)
+                    .put("allowedPaymentMethods", new JSONArray().put(cardPaymentMethod))
+                    .put("transactionInfo", transactionInfo)
+                    .put("merchantInfo", merchantInfo);
+
+            PaymentDataRequest request = PaymentDataRequest.fromJson(paymentDataRequestJson.toString());
+
+            Log.d("GooglePay", "🟡 Starting Google Pay payment...");
+
+            AutoResolveHelper.resolveTask(
+                    paymentsClient.loadPaymentData(request),
+                    requireActivity(),
+                    LOAD_PAYMENT_DATA_REQUEST_CODE
+            );
+        } catch (Exception e) {
+            Log.e("GooglePay", "Payment JSON error", e);
+        }
+    }
 }

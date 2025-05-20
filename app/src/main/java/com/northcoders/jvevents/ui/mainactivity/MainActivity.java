@@ -1,9 +1,11 @@
 package com.northcoders.jvevents.ui.mainactivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.navigation.NavigationBarView;
@@ -17,7 +19,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     // Use one instance of each fragment to avoid recreation
     private final EventPageFragment eventPageFragment = new EventPageFragment();
-    private final UserPageFragment calendarPageFragment = new UserPageFragment();
+    private final UserPageFragment userPageFragment = new UserPageFragment();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 bottomNavBar.setSelectedItemId(R.id.profileButton);
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.baseFragment, calendarPageFragment)
+                        .replace(R.id.baseFragment, userPageFragment)
                         .commit();
             }
         }
@@ -64,11 +66,20 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         if (itemId == R.id.profileButton) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.baseFragment, calendarPageFragment)
+                    .replace(R.id.baseFragment, userPageFragment)
                     .commit();
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (userPageFragment.isAdded()) {
+            userPageFragment.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }

@@ -16,7 +16,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#2E2E2E"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="22dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,6 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sign In with Google"
+            android:background="@drawable/common_google_signin_btn_icon_dark"
             android:textColor="@android:color/white"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
@@ -47,10 +48,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sign Out"
+            android:background="@drawable/common_google_signin_btn_icon_dark"
             android:visibility="gone"
             android:textColor="@android:color/white"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
+
+        <Button
+            android:id="@+id/googlePayButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Donate with Google Pay"
+            android:background="@drawable/common_google_signin_btn_icon_dark"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <!-- Search View -->
@@ -63,6 +77,7 @@
         app:layout_constraintTop_toBottomOf="@id/authButtonContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp" />
 
     <!-- Users RecyclerView -->
@@ -76,6 +91,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintHeight_percent="0.07" />
 
     <!-- Events RecyclerView -->
@@ -87,5 +104,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintHeight_percent="0.93" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

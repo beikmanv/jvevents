@@ -11,11 +11,13 @@ import java.util.concurrent.TimeUnit;
 
 public class RetrofitInstance {
 
-    private static final String BASE_URL = "http://10.0.2.2:8085/api/v1/";
-    private static Retrofit retrofitInstance;
+//    private static final String BASE_URL = "http://10.0.2.2:8085/api/v1/";
+    private static final String BASE_URL = "https://3597-2a09-bac1-28c0-168-00-178-52.ngrok-free.app/api/v1/";
     private static final Gson gson = new GsonBuilder()
             .setLenient() // Allows parsing of malformed JSON (temporary for debugging)
             .create();
+
+    private static Retrofit retrofitInstance;
 
     private static Retrofit getRetrofitInstance() {
         if (retrofitInstance == null) {
