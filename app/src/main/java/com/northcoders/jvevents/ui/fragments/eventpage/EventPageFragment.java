@@ -151,7 +151,6 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 .setMessage("Do you want to sign up for \"" + event.getTitle() + "\" and add it to your calendar?")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     viewModel.signUpForEvent(event);
-                    viewModel.triggerCalendarEvent(event);  // Trigger calendar launch
                 })
                 .setNegativeButton("No", null)
                 .show();

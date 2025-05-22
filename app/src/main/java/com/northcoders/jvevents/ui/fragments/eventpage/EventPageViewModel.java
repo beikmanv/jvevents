@@ -90,7 +90,7 @@ public class EventPageViewModel extends AndroidViewModel {
         repository.signUpForEvent(event.getId(), result -> {
             if (result.success) {
                 selectedEvent.setValue(event);
-                launchCalendarEvent.setValue(true);
+                triggerCalendarEvent(event);
             } else {
                 toastMessage.setValue(result.message);
             }
