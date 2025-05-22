@@ -87,12 +87,12 @@ public class EventPageViewModel extends AndroidViewModel {
     }
 
     public void signUpForEvent(EventDTO event) {
-        repository.signUpForEvent(event.getId(), success -> {
-            if (success) {
+        repository.signUpForEvent(event.getId(), result -> {
+            if (result.success) {
                 selectedEvent.setValue(event);
                 launchCalendarEvent.setValue(true);
             } else {
-                toastMessage.setValue("Already signed up!");
+                toastMessage.setValue(result.message);
             }
         });
     }

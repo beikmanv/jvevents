@@ -12,6 +12,7 @@ import com.northcoders.jvevents.model.AppUserDTO;
 import com.northcoders.jvevents.model.EventDTO;
 import com.northcoders.jvevents.service.ApiService;
 import com.northcoders.jvevents.service.RetrofitInstance;
+import com.northcoders.jvevents.util.SignupResult;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -100,11 +101,11 @@ public class EventRepository {
     }
 
     // ✅ Sign Up for Event
-    public void signUpForEvent(Long eventId, Consumer<Boolean> callback) {
+    public void signUpForEvent(Long eventId, Consumer<SignupResult> callback) {
         getAuthenticatedApiService(api -> {
             FirebaseAuth auth = FirebaseAuth.getInstance();
             if (auth.getCurrentUser() == null) {
-                callback.accept(false);
+                callback.accept(new SignupResult(false, "You're not signed in."));
                 return;
             }
 
@@ -112,19 +113,17 @@ public class EventRepository {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
-                        callback.accept(true);
+                        callback.accept(new SignupResult(true, "Successfully signed up."));
                     } else if (response.code() == 409) {
-                        callback.accept(false); // Already signed up
+                        callback.accept(new SignupResult(false, "Already signed up."));
                     } else {
-                        callback.accept(false);
-                        Log.e("EventRepository", "Failed to sign up: " + response.code());
+                        callback.accept(new SignupResult(false, "Server error: " + response.code()));
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    callback.accept(false);
-                    Log.e("EventRepository", "Sign-up failed: " + t.getMessage());
+                    callback.accept(new SignupResult(false, "Network error: " + t.getMessage()));
                 }
             });
         });
