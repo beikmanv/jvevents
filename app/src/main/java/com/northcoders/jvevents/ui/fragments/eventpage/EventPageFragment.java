@@ -46,6 +46,8 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
     private FragmentEventPageBinding binding; // Connects the layout (UI) to this code.
     private EventPageViewModel viewModel; // Manages all the data and logic for this fragment.
     private EventAdapter eventAdapter; // Manages the list of events (RecyclerView).
+    private boolean calendarOpened = false;
+    private EventDTO pendingEvent = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -95,17 +97,6 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
             }
         });
 
-        viewModel.getLaunchCalendarEvent().observe(getViewLifecycleOwner(), shouldLaunch -> {
-            if (Boolean.TRUE.equals(shouldLaunch)) {
-                EventDTO event = viewModel.getSelectedEvent().getValue();
-                if (event != null) {
-                    launchCalendarIntent(event);
-                    viewModel.resetLaunchCalendarEvent();
-                }
-            }
-
-        });
-
         viewModel.getShowCalendarThankYou().observe(getViewLifecycleOwner(), shouldShow -> {
             if (Boolean.TRUE.equals(shouldShow)) {
                 showCalendarThankYouDialog();
@@ -147,10 +138,12 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
 
     private void showSignUpAndCalendarConfirmationDialog(EventDTO event) {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Sign Up and Add to Calendar")
-                .setMessage("Do you want to sign up for \"" + event.getTitle() + "\" and add it to your calendar?")
+                .setTitle("Add Event to Calendar")
+                .setMessage("Would you like to add \"" + event.getTitle() + "\" to your calendar?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    viewModel.signUpForEvent(event);
+                    pendingEvent = event;
+                    calendarOpened = true;
+                    launchCalendarIntent(event); // only opens calendar now
                 })
                 .setNegativeButton("No", null)
                 .show();
@@ -179,7 +172,6 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 .putExtra(CalendarContract.Events.EVENT_LOCATION, event.getLocation());
 
         context.startActivity(insertIntent);
-        viewModel.triggerCalendarThankYou();
     }
 
     private void showCalendarThankYouDialog() {
@@ -229,5 +221,28 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                 .setView(view)
                 .setPositiveButton("Close", null)
                 .show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (calendarOpened && pendingEvent != null) {
+            calendarOpened = false;
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Confirm Sign-Up")
+                    .setMessage("Did you successfully add \"" + pendingEvent.getTitle() + "\" to your calendar?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        viewModel.signUpForEvent(pendingEvent);
+                        viewModel.triggerCalendarThankYou(); // optional thank-you
+                        pendingEvent = null;
+                    })
+                    .setNegativeButton("No", (dialog, which) -> {
+                        Toast.makeText(requireContext(), "Sign-up cancelled.", Toast.LENGTH_SHORT).show();
+                        pendingEvent = null;
+                    })
+                    .show();
+        }
     }
 }
