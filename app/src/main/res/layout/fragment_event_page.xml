@@ -6,9 +6,6 @@
         <variable
             name="Event"
             type="com.northcoders.jvevents.model.EventDTO" />
-        <variable
-            name="clickHandler"
-            type="com.northcoders.jvevents.ui.fragments.eventpage.EventPageClickHandlers"/>
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

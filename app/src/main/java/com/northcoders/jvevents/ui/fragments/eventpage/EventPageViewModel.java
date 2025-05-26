@@ -12,9 +12,6 @@ import com.northcoders.jvevents.repository.EventRepository;
 
 import java.util.List;
 
-// It is the brain of the EventPageFragment. It handles all the logic and data that the fragment needs.
-// It is designed to store and manage UI-related data in a way that survives configuration changes (like screen rotations).
-// It separates UI logic (handled in the Fragment) from business logic and data (handled here). It connects your EventPageFragment with your EventRepository.
 public class EventPageViewModel extends AndroidViewModel {
     private final EventRepository repository;
     private final MutableLiveData<EventDTO> selectedEvent = new MutableLiveData<>();
@@ -25,6 +22,12 @@ public class EventPageViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> showAttendeesDialog = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     public LiveData<Boolean> getIsLoading() { return isLoading; }
+    private final MutableLiveData<Boolean> updateEventSuccess = new MutableLiveData<>();
+    public LiveData<Boolean> getUpdateEventSuccess() { return updateEventSuccess; }
+    private final MutableLiveData<Boolean> createEventSuccess = new MutableLiveData<>();
+    public LiveData<Boolean> getCreateEventSuccess() { return createEventSuccess; }
+    private final MutableLiveData<Boolean> deleteEventSuccess = new MutableLiveData<>();
+    public LiveData<Boolean> getDeleteEventSuccess() { return deleteEventSuccess; }
 
     public LiveData<List<EventDTO>> getAllEvents() {
         return repository.getAllEventsLiveData(); // the version WITHOUT callback
@@ -40,14 +43,7 @@ public class EventPageViewModel extends AndroidViewModel {
     }
 
     public void updateEvent(EventDTO event) {
-        repository.updateEvent(event).observeForever(success -> {
-            if (Boolean.TRUE.equals(success)) {
-                fetchAllEvents(); // Refresh the event list
-                toastMessage.setValue("Event updated successfully.");
-            } else {
-                toastMessage.setValue("Failed to update event.");
-            }
-        });
+        repository.updateEvent(event, updateEventSuccess);
     }
 
     public LiveData<Boolean> getLaunchCalendarEvent() {
@@ -115,14 +111,7 @@ public class EventPageViewModel extends AndroidViewModel {
     }
 
     public void deleteEvent(EventDTO event) {
-        repository.deleteEvent(event.getId()).observeForever(success -> {
-            if (Boolean.TRUE.equals(success)) {
-                fetchAllEvents(); // Keep this here so ViewModel triggers UI update
-                toastMessage.setValue("Event deleted successfully.");
-            } else {
-                toastMessage.setValue("Failed to delete event.");
-            }
-        });
+        repository.deleteEvent(event.getId(), deleteEventSuccess);
     }
 
     public LiveData<List<AppUserDTO>> getAttendeesLiveData() {
@@ -149,14 +138,7 @@ public class EventPageViewModel extends AndroidViewModel {
     }
 
     public void createEvent(EventDTO event) {
-        repository.createEvent(event).observeForever(success -> {
-            if (Boolean.TRUE.equals(success)) {
-                fetchAllEvents();
-                toastMessage.setValue("Event created successfully.");
-            } else {
-                toastMessage.setValue("Failed to create event.");
-            }
-        });
+        repository.createEvent(event, createEventSuccess);
     }
 }
 

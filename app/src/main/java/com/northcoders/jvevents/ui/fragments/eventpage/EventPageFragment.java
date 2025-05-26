@@ -123,6 +123,33 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
+
+        viewModel.getUpdateEventSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (Boolean.TRUE.equals(success)) {
+                viewModel.fetchAllEvents();
+                Toast.makeText(requireContext(), "Event updated successfully.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(requireContext(), "Failed to update event.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getCreateEventSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (Boolean.TRUE.equals(success)) {
+                viewModel.fetchAllEvents();
+                Toast.makeText(requireContext(), "Event created successfully.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(requireContext(), "Failed to create event.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getDeleteEventSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (Boolean.TRUE.equals(success)) {
+                viewModel.fetchAllEvents();
+                Toast.makeText(requireContext(), "Event deleted successfully.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(requireContext(), "Failed to delete event.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

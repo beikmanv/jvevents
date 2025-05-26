@@ -81,23 +81,21 @@ public class EventRepository {
     }
 
     // ✅ Update Event (For Staff)
-    public LiveData<Boolean> updateEvent(EventDTO event) {
-        MutableLiveData<Boolean> result = new MutableLiveData<>();
+    public void updateEvent(EventDTO event, MutableLiveData<Boolean> result) {
         getAuthenticatedApiService(api -> {
             api.updateEvent(event.getId(), event).enqueue(new Callback<EventDTO>() {
                 @Override
                 public void onResponse(Call<EventDTO> call, Response<EventDTO> response) {
-                    result.setValue(response.isSuccessful());
+                    result.postValue(response.isSuccessful());
                 }
 
                 @Override
                 public void onFailure(Call<EventDTO> call, Throwable t) {
-                    Log.e("EventRepository", "Failed to update event: " + t.getMessage());
-                    result.setValue(false);
+                    Log.e("EventRepository", "Update failed", t);
+                    result.postValue(false);
                 }
             });
         });
-        return result;
     }
 
     // ✅ Sign Up for Event
@@ -177,32 +175,21 @@ public class EventRepository {
                 });
     }
 
-    public LiveData<Boolean> deleteEvent(Long eventId) {
-        MutableLiveData<Boolean> result = new MutableLiveData<>();
-
+    public void deleteEvent(Long eventId, MutableLiveData<Boolean> result) {
         getAuthenticatedApiService(api -> {
             api.deleteEvent(eventId).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (response.isSuccessful()) {
-                        result.setValue(true);
-                        // Optionally refresh event list here
-                        getAllEventsLiveData();  // refresh list after deletion
-                    } else {
-                        Log.e("EventRepository", "Failed to delete event: " + response.code());
-                        result.setValue(false);
-                    }
+                    result.postValue(response.isSuccessful());
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Log.e("EventRepository", "Delete error: " + t.getMessage());
-                    result.setValue(false);
+                    Log.e("EventRepository", "Delete failed", t);
+                    result.postValue(false);
                 }
             });
         });
-
-        return result;
     }
 
     public void getAttendeesForEvent(long eventId, Consumer<List<AppUserDTO>> callback) {
@@ -232,24 +219,20 @@ public class EventRepository {
         void onError(String error);
     }
 
-    public LiveData<Boolean> createEvent(EventDTO event) {
-        MutableLiveData<Boolean> result = new MutableLiveData<>();
-
+    public void createEvent(EventDTO event, MutableLiveData<Boolean> result) {
         getAuthenticatedApiService(api -> {
             api.createEvent(event).enqueue(new Callback<EventDTO>() {
                 @Override
                 public void onResponse(Call<EventDTO> call, Response<EventDTO> response) {
-                    result.setValue(response.isSuccessful());
+                    result.postValue(response.isSuccessful());
                 }
 
                 @Override
                 public void onFailure(Call<EventDTO> call, Throwable t) {
-                    Log.e("EventRepository", "Create error: " + t.getMessage());
-                    result.setValue(false);
+                    Log.e("EventRepository", "Create failed", t);
+                    result.postValue(false);
                 }
             });
         });
-
-        return result;
     }
 }
