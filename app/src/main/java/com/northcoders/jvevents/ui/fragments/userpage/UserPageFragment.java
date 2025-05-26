@@ -263,17 +263,23 @@ public class UserPageFragment extends Fragment {
                                     .getJSONObject("paymentMethodData")
                                     .getJSONObject("tokenizationData")
                                     .getString("token");
-                            String minifiedJson = rawTokenJson.replaceAll("\\s+", " "); // collapse all whitespace
 
-                            Log.d("GooglePay", "🔍 Raw token JSON: " + minifiedJson);
+                            Log.d("GooglePay", "📦 Raw token value: " + rawTokenJson);
 
-                            JSONObject tokenObject = new JSONObject(rawTokenJson);
-                            String tokenId = tokenObject.getString("id");
+                            String tokenId;
+                            if (rawTokenJson.trim().startsWith("{")) {
+                                // It's a JSON object
+                                JSONObject tokenObject = new JSONObject(rawTokenJson);
+                                tokenId = tokenObject.getString("id");
+                            } else {
+                                // It's a raw token string
+                                tokenId = rawTokenJson;
+                            }
 
-                            Log.d("GooglePay", "✅ Extracted Stripe token ID: " + tokenId);
-
+                            Log.d("GooglePay", "✅ Final token ID sent to backend: " + tokenId);
                             viewModel.sendGooglePayToken(tokenId);
                             viewModel.handlePaymentSuccess(paymentData);
+
 
                         } catch (Exception e) {
                             Log.e("GooglePay", "❌ Token extraction failed", e);
@@ -327,7 +333,7 @@ public class UserPageFragment extends Fragment {
 
             JSONObject merchantInfo = new JSONObject()
                     .put("merchantName", "Your App Name")
-                    .put("merchantOrigin", "https://bb7b-2a09-bac1-28c0-168-00-178-52.ngrok-free.app");
+                    .put("merchantOrigin", "http://10.0.2.2:8085/api/v1/");
 
             JSONObject paymentDataRequestJson = new JSONObject()
                     .put("apiVersion", 2)

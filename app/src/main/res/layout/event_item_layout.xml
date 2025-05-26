@@ -81,7 +81,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="See Attendees"
                 android:src="@drawable/baseline_diversity_3_24"
-                android:visibility="visible"
+                android:visibility="gone"
                 app:layout_constraintTop_toBottomOf="@id/eventLocation"
                 app:layout_constraintStart_toStartOf="parent" />
 

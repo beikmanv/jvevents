@@ -231,4 +231,25 @@ public class EventRepository {
         void onLoaded();
         void onError(String error);
     }
+
+    public LiveData<Boolean> createEvent(EventDTO event) {
+        MutableLiveData<Boolean> result = new MutableLiveData<>();
+
+        getAuthenticatedApiService(api -> {
+            api.createEvent(event).enqueue(new Callback<EventDTO>() {
+                @Override
+                public void onResponse(Call<EventDTO> call, Response<EventDTO> response) {
+                    result.setValue(response.isSuccessful());
+                }
+
+                @Override
+                public void onFailure(Call<EventDTO> call, Throwable t) {
+                    Log.e("EventRepository", "Create error: " + t.getMessage());
+                    result.setValue(false);
+                }
+            });
+        });
+
+        return result;
+    }
 }

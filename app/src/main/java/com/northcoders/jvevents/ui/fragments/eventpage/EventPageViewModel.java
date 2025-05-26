@@ -147,6 +147,17 @@ public class EventPageViewModel extends AndroidViewModel {
     public void resetShowAttendeesDialog() {
         showAttendeesDialog.setValue(false);
     }
+
+    public void createEvent(EventDTO event) {
+        repository.createEvent(event).observeForever(success -> {
+            if (Boolean.TRUE.equals(success)) {
+                fetchAllEvents();
+                toastMessage.setValue("Event created successfully.");
+            } else {
+                toastMessage.setValue("Failed to create event.");
+            }
+        });
+    }
 }
 
 

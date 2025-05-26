@@ -66,6 +66,7 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        binding.createEventButton.setOnClickListener(v -> showCreateEventDialog());
 
         View nav = requireActivity().findViewById(R.id.bottomnavbar);
         if (nav != null) {
@@ -89,6 +90,9 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
 
         viewModel.isUserStaff().observe(getViewLifecycleOwner(), isStaff -> {
             eventAdapter.setIsStaff(isStaff != null && isStaff);
+            binding.createEventButton.setVisibility(
+                    Boolean.TRUE.equals(isStaff) ? View.VISIBLE : View.GONE
+            );
         });
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
@@ -244,5 +248,20 @@ public class EventPageFragment extends Fragment implements EventAdapter.OnEventA
                     })
                     .show();
         }
+    }
+
+    private void showCreateEventDialog() {
+        DialogEditEventBinding dialogBinding = DialogEditEventBinding.inflate(LayoutInflater.from(requireContext()));
+        dialogBinding.setEvent(new EventDTO()); // Empty event for creation
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Create New Event")
+                .setView(dialogBinding.getRoot())
+                .setPositiveButton("Create", (dialog, which) -> {
+                    EventDTO newEvent = dialogBinding.getEvent();
+                    viewModel.createEvent(newEvent);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }

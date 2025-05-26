@@ -97,4 +97,6 @@ public class UserPageViewModel extends AndroidViewModel {
         Log.d(TAG, "📡 sendGooglePayToken() CALLED with token: " + token);
         paymentRepository.sendGooglePayToken(token, paymentMessage);
     }
+
+
 }
