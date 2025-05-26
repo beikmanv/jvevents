@@ -116,10 +116,11 @@ public class UserRepository {
         return authStatus;
     }
 
-    public void fetchUsers(MutableLiveData<List<AppUserDTO>> usersLiveData) {
+    public void fetchUsers(MutableLiveData<List<AppUserDTO>> usersLiveData, Runnable onComplete) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             usersLiveData.postValue(null);
+            onComplete.run();
             Log.d(TAG, "❌ No current user while fetching users.");
             return;
         }
@@ -128,6 +129,7 @@ public class UserRepository {
             if (task.isSuccessful() && task.getResult() != null) {
                 String token = task.getResult().getToken();
                 ApiService apiService = RetrofitInstance.getApiServiceWithAuth(token);
+
                 apiService.getAllUsers().enqueue(new Callback<List<AppUserDTO>>() {
                     @Override
                     public void onResponse(Call<List<AppUserDTO>> call, Response<List<AppUserDTO>> response) {
@@ -137,17 +139,20 @@ public class UserRepository {
                             Log.e(TAG, "❌ Failed to fetch users: " + response.message());
                             usersLiveData.postValue(null);
                         }
+                        onComplete.run();
                     }
 
                     @Override
                     public void onFailure(Call<List<AppUserDTO>> call, Throwable t) {
                         Log.e(TAG, "❌ Network error fetching users", t);
                         usersLiveData.postValue(null);
+                        onComplete.run();
                     }
                 });
             } else {
                 Log.e(TAG, "❌ Token retrieval failed when fetching users.");
                 usersLiveData.postValue(null);
+                onComplete.run();
             }
         });
     }
@@ -186,6 +191,7 @@ public class UserRepository {
                 eventsLiveData.postValue(null);
             }
         });
+
     }
 
     public void checkGooglePayAvailability(PaymentsClient client, MutableLiveData<Boolean> resultLiveData) {

@@ -74,7 +74,7 @@ public class UserPageFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentUserPageBinding.inflate(inflater, container, false);
         setupRecyclerViews();
-        loadUsers();
+        viewModel.fetchUsers();
         return binding.getRoot();
     }
 
@@ -122,25 +122,6 @@ public class UserPageFragment extends Fragment {
         binding.recyclerViewEvents.setAdapter(eventAdapter);
     }
 
-    private void loadUsers() {
-        RetrofitInstance.getApiService().getAllUsers().enqueue(new Callback<List<AppUserDTO>>() {
-            @Override
-            public void onResponse(Call<List<AppUserDTO>> call, Response<List<AppUserDTO>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    userList = response.body();
-                    userAdapter.updateUsers(userList);
-                } else {
-                    Toast.makeText(requireContext(), "Failed to load users.", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<AppUserDTO>> call, Throwable t) {
-                Toast.makeText(requireContext(), "Failed to load users.", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     private void fetchUserEvents(Long userId) {
         RetrofitInstance.getApiService().getEventsForUser(userId).enqueue(new Callback<List<EventDTO>>() {
             @Override
@@ -184,9 +165,6 @@ public class UserPageFragment extends Fragment {
             updateUI(user);
         });
 
-        // Automatically fetch users at start
-        loadUsers();
-
         viewModel.checkGooglePayAvailability(paymentsClient);
 
         viewModel.isGooglePayAvailable().observe(getViewLifecycleOwner(), isAvailable -> {
@@ -197,6 +175,10 @@ public class UserPageFragment extends Fragment {
             if (msg != null) {
                 Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
             }
+        });
+
+        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.userPageProgressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
         binding.googlePayButton.setOnClickListener(v -> requestPayment());

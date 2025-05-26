@@ -25,13 +25,13 @@ import java.util.List;
 public class UserPageViewModel extends AndroidViewModel {
 
     private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository = new PaymentRepository();
+
     private final MutableLiveData<List<AppUserDTO>> usersLiveData = new MutableLiveData<>();
     private final MutableLiveData<List<EventDTO>> eventsLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> googlePayAvailable = new MutableLiveData<>();
     private final MutableLiveData<String> paymentMessage = new MutableLiveData<>();
-    public LiveData<Boolean> isGooglePayAvailable() { return googlePayAvailable; }
-    public LiveData<String> getPaymentMessage() { return paymentMessage; }
-    private final PaymentRepository paymentRepository = new PaymentRepository();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
 
     public UserPageViewModel(@NonNull Application application) {
         super(application);
@@ -46,6 +46,26 @@ public class UserPageViewModel extends AndroidViewModel {
         return userRepository.getAuthStatus();
     }
 
+    public LiveData<List<AppUserDTO>> getUsersLiveData() {
+        return usersLiveData;
+    }
+
+    public LiveData<List<EventDTO>> getEventsLiveData() {
+        return eventsLiveData;
+    }
+
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
+    }
+
+    public LiveData<Boolean> isGooglePayAvailable() {
+        return googlePayAvailable;
+    }
+
+    public LiveData<String> getPaymentMessage() {
+        return paymentMessage;
+    }
+
     public void signInWithGoogle(String idToken) {
         userRepository.signInWithGoogle(idToken);
     }
@@ -55,19 +75,19 @@ public class UserPageViewModel extends AndroidViewModel {
     }
 
     public void fetchUsers() {
-        userRepository.fetchUsers(usersLiveData);
+        fetchUsers(usersLiveData, () -> isLoading.setValue(false));
+    }
+
+    public void fetchUsers(MutableLiveData<List<AppUserDTO>> target, Runnable onComplete) {
+        isLoading.setValue(true);
+        userRepository.fetchUsers(target, () -> {
+            onComplete.run();
+            isLoading.setValue(false);
+        });
     }
 
     public void fetchUserEvents(long userId) {
         userRepository.fetchUserEvents(userId, eventsLiveData);
-    }
-
-    public LiveData<List<AppUserDTO>> getUsersLiveData() {
-        return usersLiveData;
-    }
-
-    public LiveData<List<EventDTO>> getEventsLiveData() {
-        return eventsLiveData;
     }
 
     public void checkGooglePayAvailability(PaymentsClient client) {
@@ -97,6 +117,4 @@ public class UserPageViewModel extends AndroidViewModel {
         Log.d(TAG, "📡 sendGooglePayToken() CALLED with token: " + token);
         paymentRepository.sendGooglePayToken(token, paymentMessage);
     }
-
-
 }
