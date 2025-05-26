@@ -101,8 +101,15 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 });
 
                 if (isStaff) {
+                    fullBinding.btnSeeAttendees.setVisibility(View.VISIBLE);
                     fullBinding.btnEditEvent.setVisibility(View.VISIBLE);
                     fullBinding.btnDeleteEvent.setVisibility(View.VISIBLE);
+
+                    fullBinding.btnSeeAttendees.setOnClickListener(v -> {
+                        if (actionListener != null) {
+                            actionListener.onSeeAttendeesClick(event);
+                        }
+                    });
 
                     fullBinding.btnEditEvent.setOnClickListener(v -> {
                         if (actionListener != null) {
