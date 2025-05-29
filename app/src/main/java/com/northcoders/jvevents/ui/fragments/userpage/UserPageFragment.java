@@ -2,6 +2,7 @@ package com.northcoders.jvevents.ui.fragments.userpage;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
@@ -293,6 +294,12 @@ public class UserPageFragment extends Fragment {
     }
 
     private void requestPayment() {
+        if (Build.FINGERPRINT.contains("generic")) {
+            Log.d("EmulatorCheck", "Google Pay not supported on emulator");
+            Toast.makeText(requireContext(), "Google Pay not available on emulator", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         try {
             JSONObject tokenizationSpec = new JSONObject()
                     .put("type", "PAYMENT_GATEWAY")

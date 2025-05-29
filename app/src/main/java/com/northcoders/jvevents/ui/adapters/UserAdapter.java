@@ -43,6 +43,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     }
 
     public void updateUsers(List<AppUserDTO> newUsers) {
+        if (newUsers == null) {
+            newUsers = new ArrayList<>();
+        }
         this.originalList = new ArrayList<>(newUsers);
         this.filteredList = new ArrayList<>(newUsers);
         notifyDataSetChanged();

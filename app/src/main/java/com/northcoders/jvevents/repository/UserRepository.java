@@ -1,5 +1,6 @@
 package com.northcoders.jvevents.repository;
 
+import android.os.Build;
 import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.auth.AuthCredential;
@@ -195,7 +196,15 @@ public class UserRepository {
     }
 
     public void checkGooglePayAvailability(PaymentsClient client, MutableLiveData<Boolean> resultLiveData) {
+        // 👇 Skip Google Pay check on emulators like Appetize
+        if (Build.FINGERPRINT.contains("generic")) {
+            Log.d("EmulatorCheck", "Running on emulator - skipping Google Pay init");
+            resultLiveData.postValue(false);
+            return;
+        }
+
         try {
+            // ✅ Google Pay API request object
             JSONObject isReadyToPayJson = new JSONObject()
                     .put("apiVersion", 2)
                     .put("apiVersionMinor", 0)
@@ -207,13 +216,25 @@ public class UserRepository {
                                             .put("allowedCardNetworks", new JSONArray().put("VISA").put("MASTERCARD"))
                                     )
                     ));
+
             IsReadyToPayRequest request = IsReadyToPayRequest.fromJson(isReadyToPayJson.toString());
-            client.isReadyToPay(request).addOnCompleteListener(task ->
-                    resultLiveData.setValue(task.isSuccessful() && Boolean.TRUE.equals(task.getResult()))
-            );
+
+            // ✅ Safe call to Google API
+            client.isReadyToPay(request)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Boolean isReady = task.getResult();
+                            Log.d("GooglePay", "✅ isReadyToPay result: " + isReady);
+                            resultLiveData.postValue(Boolean.TRUE.equals(isReady));
+                        } else {
+                            Log.e("GooglePay", "❌ isReadyToPay failed", task.getException());
+                            resultLiveData.postValue(false);
+                        }
+                    });
         } catch (Exception e) {
-            Log.e(TAG, "Google Pay check error", e);
-            resultLiveData.setValue(false);
+            Log.e("GooglePay", "❌ JSON or API error in checkGooglePayAvailability", e);
+            resultLiveData.postValue(false);
         }
     }
+
 }

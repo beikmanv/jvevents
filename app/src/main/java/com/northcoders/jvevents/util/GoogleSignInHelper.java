@@ -7,14 +7,29 @@ import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
 import com.northcoders.jvevents.R;
 
+import com.northcoders.jvevents.BuildConfig;
+
 public class GoogleSignInHelper {
 
     private static final int RC_SIGN_IN = 9001;
     private final GoogleSignInClient googleSignInClient;
 
     public GoogleSignInHelper(Activity activity) {
+        if (android.os.Build.FINGERPRINT.contains("generic")) {
+            android.util.Log.w("GoogleSignInHelper", "⚠️ Emulator detected, skipping GoogleSignInClient init");
+            googleSignInClient = null;
+            return;
+        }
+
+        String clientId = BuildConfig.GOOGLE_WEB_CLIENT_ID;
+        if (clientId == null || clientId.isEmpty()) {
+            android.util.Log.e("GoogleSignInHelper", "❌ GOOGLE_WEB_CLIENT_ID is not defined");
+            googleSignInClient = null;
+            return;
+        }
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(activity.getString(R.string.default_web_client_id)) // 🔑 Google Client ID
+                .requestIdToken(clientId)
                 .requestEmail()
                 .build();
 
@@ -22,6 +37,11 @@ public class GoogleSignInHelper {
     }
 
     public void signIn(Activity activity) {
+        if (googleSignInClient == null) {
+            android.util.Log.e("GoogleSignInHelper", "🚫 signIn() called but client is null");
+            return;
+        }
+
         Intent signInIntent = googleSignInClient.getSignInIntent();
         activity.startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -31,11 +51,21 @@ public class GoogleSignInHelper {
     }
 
     public static String getIdToken(Intent data) throws ApiException {
-        GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
-        return account.getIdToken();
+        try {
+            GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
+            return account != null ? account.getIdToken() : null;
+        } catch (Exception e) {
+            android.util.Log.e("GoogleSignInHelper", "❌ getIdToken() failed", e);
+            return null;
+        }
     }
 
     public void signOut() {
-        googleSignInClient.signOut();
+        if (googleSignInClient != null) {
+            googleSignInClient.signOut();
+        } else {
+            android.util.Log.w("GoogleSignInHelper", "signOut() called but client is null");
+        }
     }
 }
+
