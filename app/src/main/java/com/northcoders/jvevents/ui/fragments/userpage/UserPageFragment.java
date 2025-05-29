@@ -182,7 +182,7 @@ public class UserPageFragment extends Fragment {
         });
 
         viewModel.getUsersLiveData().observe(getViewLifecycleOwner(), users -> {
-            userAdapter.updateUsers(users); // or whatever your update method is
+            userAdapter.updateUsers(users);
         });
 
         binding.googlePayButton.setOnClickListener(v -> requestPayment());
