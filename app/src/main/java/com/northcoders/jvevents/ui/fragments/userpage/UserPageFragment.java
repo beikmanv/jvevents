@@ -181,6 +181,10 @@ public class UserPageFragment extends Fragment {
             binding.userPageProgressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
+        viewModel.getUsersLiveData().observe(getViewLifecycleOwner(), users -> {
+            userAdapter.updateUsers(users);
+        });
+
         binding.googlePayButton.setOnClickListener(v -> requestPayment());
     }
 
