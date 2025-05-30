@@ -12,14 +12,24 @@ JVEvents is a complete Android-based event management solution powered by a Spri
 
 **Live on Appetize:**  
 🔗 https://appetize.io/app/b_uheicun4h4jepejqnsjjx3hd2m  
-> ⚠️ Appetize has a free 30-minute monthly limit. Demo mode is publicly accessible.
+> ⚠️ Appetize has a free 30-minute monthly limit. 
+
 ---
 
 ## ⚙️ API Server (Backend)
 
 **Hosted on Render:**  
 🔗 https://jvevents-api-1.onrender.com  
-> ⚠️ Initial cold start may take ~1–2 minutes.
+> ⚠️ Initial cold start may take ~1–2 minutes.  
+
+---  
+## 🛰️ Local Frontend with a Hosted Backend
+ 
+🚨 To connect to a JVEvents API hosted on Render.com from your Android Studio,  
+replace the String BASE_URL in RetrofitInstance class with the following:
+```
+ "https://jvevents-api-1.onrender.com/api/v1/"
+```
 
 ---
 
@@ -133,7 +143,8 @@ For backend operations like managing users and pushing to Firebase:
 jvevents-api/src/main/resources/serviceAccountKey.json
 ```
 
-Ensure the private key uses \n as newline characters or is loaded via FileInputStream. A malformed key will break deserialization.
+Ensure the private key uses \n as newline characters or is loaded via FileInputStream.  
+A malformed key will break deserialization.
 
 Example key structure:
 ```json
@@ -168,7 +179,7 @@ Inside JwtAuthFilter.java (doFilterInternal method):
 ```java
 user.setStaff(true);
 ```
-Option B: Manually in the database (app_users table):
+**Option B: Manually in the database (app_users table):**
 ```sql
 UPDATE app_users
 SET staff = true
