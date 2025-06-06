@@ -11,7 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 public class RetrofitInstance {
 
-    private static final String BASE_URL = "http://10.0.2.2:8085/api/v1/";
+    private static final String BASE_URL = "http://10.0.2.2:8080/api/v1/";
+//    private static final String BASE_URL = "https://jvevents-api-1.onrender.com/api/v1/";
     private static final Gson gson = new GsonBuilder()
             .setLenient() // Allows parsing of malformed JSON (temporary for debugging)
             .create();
