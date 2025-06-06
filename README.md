@@ -42,6 +42,13 @@ replace the String BASE_URL in RetrofitInstance class with the following:
 #### Repository: https://github.com/beikmanv/jvevents  
 #### Recommended IDE: Android Studio  
 #### Location of dependencies: `jvevents/app/build.gradle`
+
+Android Studio Ladybug Feature Drop | 2024.2.2
+compileSdk 35
+minSdk 24
+targetSdk 35
+gradle-8.10.2
+
 ---
 
 
@@ -62,7 +69,8 @@ replace the String BASE_URL in RetrofitInstance class with the following:
 The **Google OAuth 2.0 Web Client ID** is stored in:  
 `jvevents/app/src/main/res/values/strings.xml`
 
-Replace the `default_web_client_id` with your own credential from:  
+🔺 For testing purposes, the provided `default_web_client_id` in `strings.xml` may be used.  
+⚠️ In production or when customizing the app, replace it with your own from:     
 **Firebase Console → Project Settings → OAuth 2.0 Client IDs**
 
 It is used for:
@@ -78,6 +86,11 @@ It is used for:
 #### Repository: [https://github.com/beikmanv/jvevents-api](https://github.com/beikmanv/jvevents-api)  
 #### Recommended IDE: IntelliJ IDEA  
 #### Dependencies location: `jvevents-api/pom.xml`
+
+Java 17
+Apache Maven 3.9.9
+Spring Boot 3.4.4
+
 ---
 
 ### 📦 Required Libraries / Technologies
